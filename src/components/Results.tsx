@@ -1,41 +1,37 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import Loader from './Loader';
 import Card from './Card';
 
-interface State {
-  results: Array<{ name: string; url: string }>;
-  loading: boolean;
-  error: string | null;
+interface Result {
+  name: string;
+  url: string;
 }
 
-class Results extends Component<object, State> {
-  constructor(props: object) {
-    super(props);
-    this.state = {
-      results: [],
-      loading: false,
-      error: null,
-    };
-  }
+const Results = () => {
+  const [results, setResults] = useState<Result[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  componentDidMount() {
+  useEffect(() => {
     const savedSearchTerm = localStorage.getItem('searchTerm') || '';
-    this.fetchResults(savedSearchTerm);
-    window.addEventListener('search', this.handleSearchEvent);
-  }
+    fetchResults(savedSearchTerm);
 
-  componentWillUnmount() {
-    window.removeEventListener('search', this.handleSearchEvent);
-  }
+    const handleSearchEvent = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const searchTerm = customEvent.detail;
+      fetchResults(searchTerm);
+    };
 
-  handleSearchEvent = (event: Event) => {
-    const customEvent = event as CustomEvent;
-    const searchTerm = customEvent.detail;
-    this.fetchResults(searchTerm);
-  };
+    window.addEventListener('search', handleSearchEvent);
 
-  fetchResults = async (searchTerm: string) => {
-    this.setState({ loading: true, error: null });
+    return () => {
+      window.removeEventListener('search', handleSearchEvent);
+    };
+  }, []);
+
+  const fetchResults = async (searchTerm: string) => {
+    setLoading(true);
+    setError(null);
 
     try {
       const apiUrl = searchTerm
@@ -49,40 +45,38 @@ class Results extends Component<object, State> {
       }
 
       const data = await response.json();
-      const results = searchTerm
+      const resultsData = searchTerm
         ? [{ name: data.name, url: data.url }]
         : data.results;
 
-      this.setState({ results, loading: false });
+      setResults(resultsData);
     } catch (error: unknown) {
       if (error instanceof Error) {
-        this.setState({ error: error.message, loading: false });
+        setError(error.message);
       } else {
-        this.setState({ error: 'An unknown error occurred', loading: false });
+        setError('An unknown error occurred');
       }
+    } finally {
+      setLoading(false);
     }
   };
 
-  render() {
-    const { results, loading, error } = this.state;
+  if (loading) return <Loader />;
+  if (error) return <div className="error-message">{error}</div>;
 
-    if (loading) return <Loader />;
-    if (error) return <div className="error-message">{error}</div>;
-
-    return (
-      <div className="results-container">
-        {results.map((result) => (
-          <Card
-            key={result.name}
-            name={result.name}
-            url={
-              result.url || `https://pokeapi.co/api/v2/pokemon/${result.name}/`
-            }
-          />
-        ))}
-      </div>
-    );
-  }
-}
+  return (
+    <div className="results-container">
+      {results.map((result) => (
+        <Card
+          key={result.name}
+          name={result.name}
+          url={
+            result.url || `https://pokeapi.co/api/v2/pokemon/${result.name}/`
+          }
+        />
+      ))}
+    </div>
+  );
+};
 
 export default Results;

@@ -1,36 +1,29 @@
-import { Component, ChangeEvent } from 'react';
+import { useState, ChangeEvent } from 'react';
 import Loader from './Loader';
 
-interface State {
-  searchTerm: string;
-  loading: boolean;
-}
+const Search = () => {
+  const savedSearchTerm = localStorage.getItem('searchTerm') || '';
+  const [searchTerm, setSearchTerm] = useState(savedSearchTerm);
+  const [loading, setLoading] = useState(false);
 
-class Search extends Component<object, State> {
-  constructor(props: object) {
-    super(props);
-    const savedSearchTerm = localStorage.getItem('searchTerm') || '';
-    this.state = { searchTerm: savedSearchTerm, loading: false };
-  }
-
-  handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    this.setState({ searchTerm: e.target.value });
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
   };
 
-  handleSearch = async () => {
-    const trimmedTerm = this.state.searchTerm.trim();
+  const handleSearch = async () => {
+    const trimmedTerm = searchTerm.trim();
     localStorage.setItem('searchTerm', trimmedTerm);
-    this.setState({ loading: true });
+    setLoading(true);
 
     const event = new CustomEvent('search', { detail: trimmedTerm });
     window.dispatchEvent(event);
 
-    await this.fetchSearchResults(trimmedTerm);
+    await fetchSearchResults(trimmedTerm);
 
-    this.setState({ loading: false });
+    setLoading(false);
   };
 
-  fetchSearchResults = (term: string) => {
+  const fetchSearchResults = (term: string) => {
     return new Promise((resolve) => {
       setTimeout(() => {
         console.log(`Results for: ${term}`);
@@ -39,21 +32,19 @@ class Search extends Component<object, State> {
     });
   };
 
-  render() {
-    return (
-      <div className="search-container">
-        <input
-          type="text"
-          placeholder="Search Pokémon"
-          value={this.state.searchTerm}
-          onChange={this.handleInputChange}
-        />
-        <button onClick={this.handleSearch}>Search</button>
+  return (
+    <div className="search-container">
+      <input
+        type="text"
+        placeholder="Search Pokémon"
+        value={searchTerm}
+        onChange={handleInputChange}
+      />
+      <button onClick={handleSearch}>Search</button>
 
-        {this.state.loading && <Loader />}
-      </div>
-    );
-  }
-}
+      {loading && <Loader />}
+    </div>
+  );
+};
 
 export default Search;

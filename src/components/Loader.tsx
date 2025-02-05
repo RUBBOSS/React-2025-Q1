@@ -1,15 +1,13 @@
-import { Component } from 'react';
+import React from 'react';
 
-class Loader extends Component {
-  render() {
-    return (
-      <div className="loader-overlay">
-        <div className="loader">
-          <p>Loading...</p>
-        </div>
+const Loader: React.FC = () => {
+  return (
+    <div className="loader-overlay">
+      <div className="loader">
+        <p>Loading...</p>
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
 export default Loader;
