@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearch } from '../context/SearchContext';
 import Loader from './Loader';
 import Card from './Card';
 
@@ -11,23 +12,11 @@ const Results = () => {
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const { searchTerm } = useSearch();
 
   useEffect(() => {
-    const savedSearchTerm = localStorage.getItem('searchTerm') || '';
-    fetchResults(savedSearchTerm);
-
-    const handleSearchEvent = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      const searchTerm = customEvent.detail;
-      fetchResults(searchTerm);
-    };
-
-    window.addEventListener('search', handleSearchEvent);
-
-    return () => {
-      window.removeEventListener('search', handleSearchEvent);
-    };
-  }, []);
+    fetchResults(searchTerm);
+  }, [searchTerm]);
 
   const fetchResults = async (searchTerm: string) => {
     setLoading(true);
@@ -36,7 +25,7 @@ const Results = () => {
     try {
       const apiUrl = searchTerm
         ? `https://pokeapi.co/api/v2/pokemon/${searchTerm.toLowerCase()}`
-        : `https://pokeapi.co/api/v2/pokemon?limit=10`;
+        : `https://pokeapi.co/api/v2/pokemon?limit=12`;
 
       const response = await fetch(apiUrl);
 
@@ -61,20 +50,48 @@ const Results = () => {
     }
   };
 
+  const resetToMainList = () => {
+    localStorage.removeItem('searchTerm');
+    fetchResults('');
+  };
+
   if (loading) return <Loader />;
-  if (error) return <div className="error-message">{error}</div>;
+  if (error)
+    return (
+      <div className="flex flex-col items-center gap-4">
+        <div className="text-red-600 font-semibold">{error}</div>
+        <button
+          onClick={resetToMainList}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+        >
+          Back to Main List
+        </button>
+      </div>
+    );
 
   return (
-    <div className="results-container">
-      {results.map((result) => (
-        <Card
-          key={result.name}
-          name={result.name}
-          url={
-            result.url || `https://pokeapi.co/api/v2/pokemon/${result.name}/`
-          }
-        />
-      ))}
+    <div className="grid gap-6 mt-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 px-4">
+      {results.length > 0 ? (
+        results.map((result) => (
+          <Card
+            key={result.name}
+            name={result.name}
+            url={
+              result.url || `https://pokeapi.co/api/v2/pokemon/${result.name}/`
+            }
+          />
+        ))
+      ) : (
+        <div className="col-span-full flex flex-col items-center gap-4">
+          <p className="text-gray-600">No Pokémon found</p>
+          <button
+            onClick={resetToMainList}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+          >
+            Back to Main List
+          </button>
+        </div>
+      )}
     </div>
   );
 };

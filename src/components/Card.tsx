@@ -1,95 +1,15 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-
-interface Ability {
-  ability: {
-    name: string;
-  };
-  is_hidden: boolean;
-  slot: number;
-}
-
-interface Type {
-  type: {
-    name: string;
-  };
-}
-
-interface Stat {
-  base_stat: number;
-  stat: {
-    name: string;
-  };
-}
-
-interface Move {
-  move: {
-    name: string;
-  };
-}
-
-interface GameIndex {
-  game_index: number;
-  version: {
-    name: string;
-  };
-}
-
-interface HeldItem {
-  item: {
-    name: string;
-  };
-}
-
-interface PokemonDetails {
-  height: number;
-  weight: number;
-  base_experience: number;
-  types: Type[];
-  abilities: Ability[];
-  stats: Stat[];
-  moves: Move[];
-  game_indices: GameIndex[];
-  held_items: HeldItem[];
-  location_area_encounters: string;
-  sprites: {
-    front_default: string;
-  };
-  species: {
-    name: string;
-    url: string;
-  };
-}
-
-interface SpeciesDetails {
-  flavor_text_entries: Array<{
-    flavor_text: string;
-    language: {
-      name: string;
-    };
-    version: {
-      name: string;
-    };
-  }>;
-  habitat: {
-    name: string;
-  } | null;
-  evolution_chain: {
-    url: string;
-  };
-}
-
-interface EvolutionChain {
-  chain: EvolutionNode;
-}
-
-interface EvolutionNode {
-  species: {
-    name: string;
-    url: string;
-  };
-  evolves_to: EvolutionNode[];
-}
+import {
+  fetchPokemonDetails,
+  fetchSpeciesDetails,
+  fetchEvolutionChain,
+  fetchLocationEncounters,
+} from '../api/pokeapi';
+import {
+  PokemonDetails,
+  SpeciesDetails,
+  EvolutionNode,
+} from '../types/pokemon';
 
 interface CardProps {
   name: string;
@@ -122,8 +42,8 @@ const Card: React.FC<CardProps> = ({ name, url }) => {
       setLoadingState((prev) => ({ ...prev, details: true }));
       setError(null);
       try {
-        const response = await axios.get<PokemonDetails>(url);
-        setDetails(response.data);
+        const data = await fetchPokemonDetails(url);
+        setDetails(data);
       } catch {
         setError('Failed to fetch Pokémon details.');
       } finally {
@@ -135,13 +55,13 @@ const Card: React.FC<CardProps> = ({ name, url }) => {
     }
   };
 
-  const fetchSpeciesDetails = async (): Promise<SpeciesDetails | undefined> => {
+  const fetchSpecies = async (): Promise<SpeciesDetails | undefined> => {
     if (details?.species.url) {
       setLoadingState((prev) => ({ ...prev, species: true }));
       try {
-        const response = await axios.get<SpeciesDetails>(details.species.url);
-        setSpeciesDetails(response.data);
-        return response.data;
+        const data = await fetchSpeciesDetails(details.species.url);
+        setSpeciesDetails(data);
+        return data;
       } catch {
         setError('Failed to fetch species details.');
         return undefined;
@@ -159,16 +79,15 @@ const Card: React.FC<CardProps> = ({ name, url }) => {
     return names;
   };
 
-  const fetchEvolutionChain = async () => {
-    const currentSpeciesDetails =
-      speciesDetails || (await fetchSpeciesDetails()) || null;
-    if (currentSpeciesDetails?.evolution_chain.url) {
+  const fetchEvolution = async () => {
+    const currentSpecies = speciesDetails || (await fetchSpecies());
+    if (currentSpecies?.evolution_chain.url) {
       setLoadingState((prev) => ({ ...prev, evolution: true }));
       try {
-        const response = await axios.get<EvolutionChain>(
-          currentSpeciesDetails.evolution_chain.url
+        const chainData = await fetchEvolutionChain(
+          currentSpecies.evolution_chain.url
         );
-        const chainNames = getEvolutionChainNames(response.data.chain);
+        const chainNames = getEvolutionChainNames(chainData.chain);
         setEvolutionChain(chainNames);
       } catch {
         setError('Failed to fetch evolution chain.');
@@ -178,12 +97,14 @@ const Card: React.FC<CardProps> = ({ name, url }) => {
     }
   };
 
-  const fetchLocationEncounters = async () => {
+  const fetchLocation = async () => {
     if (details?.location_area_encounters) {
       setLoadingState((prev) => ({ ...prev, location: true }));
       try {
-        const response = await axios.get(details.location_area_encounters);
-        setLocationEncounters(response.data);
+        const data = await fetchLocationEncounters(
+          details.location_area_encounters
+        );
+        setLocationEncounters(data);
       } catch {
         setError('Failed to fetch location encounters.');
       } finally {
@@ -193,111 +114,145 @@ const Card: React.FC<CardProps> = ({ name, url }) => {
   };
 
   return (
-    <div className="cards-container">
-      <div className="card">
-        <div className="card-header">
-          <h3>{name}</h3>
-          <button className="toggle-button" onClick={toggleDetails}>
-            {showDetails ? 'Hide Details' : 'View Details'}
-          </button>
-        </div>
-
-        {loadingState.details && (
-          <p className="loading-text">Loading Pokémon details...</p>
-        )}
-        {error && <p className="error-text">{error}</p>}
-
-        {showDetails && details && (
-          <div className="details">
-            <p>Height: {details.height}</p>
-            <p>Weight: {details.weight}</p>
-            <p>Base Experience: {details.base_experience}</p>
-            <p>Types: {details.types.map((t) => t.type.name).join(', ')}</p>
-            <p>
-              Abilities:{' '}
+    <article className="bg-white text-gray-900 rounded-xl shadow-lg p-6 m-4 transition duration-500 transform hover:scale-105">
+      <header className="flex items-center justify-between border-b pb-2 mb-4">
+        <h3 className="text-2xl font-bold">{name}</h3>
+        <button
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+          onClick={toggleDetails}
+        >
+          {showDetails ? 'Hide Details' : 'View Details'}
+        </button>
+      </header>
+      {loadingState.details && (
+        <p className="text-center text-gray-500">Loading Pokémon details...</p>
+      )}
+      {error && <p className="text-red-500 text-center">{error}</p>}
+      {showDetails && details && (
+        <section className="space-y-4">
+          {/* Removed animate-pulse from here */}
+          <div className="flex flex-wrap justify-around">
+            <p className="text-lg">
+              <span className="font-semibold">Height:</span> {details.height}
+            </p>
+            <p className="text-lg">
+              <span className="font-semibold">Weight:</span> {details.weight}
+            </p>
+            <p className="text-lg">
+              <span className="font-semibold">Experience:</span>{' '}
+              {details.base_experience}
+            </p>
+          </div>
+          <div>
+            <p className="text-lg font-semibold">Types:</p>
+            <p className="ml-2">
+              {details.types.map((t) => t.type.name).join(', ')}
+            </p>
+          </div>
+          <div>
+            <p className="text-lg font-semibold">Abilities:</p>
+            <p className="ml-2">
               {details.abilities.map((a) => a.ability.name).join(', ')}
             </p>
-            <ul>
+          </div>
+          <div>
+            <p className="text-lg font-semibold">Stats:</p>
+            <ul className="list-disc list-inside ml-4">
               {details.stats.map((s) => (
                 <li key={s.stat.name}>
                   {s.stat.name}: {s.base_stat}
                 </li>
               ))}
             </ul>
-            <ul>
+          </div>
+          <div>
+            <p className="text-lg font-semibold">Moves:</p>
+            <ul className="list-disc list-inside ml-4">
               {details.moves.slice(0, 5).map((m) => (
                 <li key={m.move.name}>{m.move.name}</li>
               ))}
             </ul>
-            <ul>
+          </div>
+          <div>
+            <p className="text-lg font-semibold">Game Indices:</p>
+            <ul className="list-disc list-inside ml-4">
               {details.game_indices.slice(0, 3).map((gi, index) => (
                 <li key={index}>
                   {gi.version.name}: {gi.game_index}
                 </li>
               ))}
             </ul>
-            {details.held_items?.length && (
-              <ul>
+          </div>
+          {details.held_items?.length && (
+            <div>
+              <p className="text-lg font-semibold">Held Items:</p>
+              <ul className="list-disc list-inside ml-4">
                 {details.held_items.map((item, index) => (
                   <li key={index}>{item.item.name}</li>
                 ))}
               </ul>
+            </div>
+          )}
+          <figure className="flex justify-center">
+            <img
+              className="rounded shadow-md"
+              src={details.sprites.front_default}
+              alt={name}
+            />
+          </figure>
+          <section className="border-t pt-4">
+            <h4 className="text-xl font-bold">Location Encounters</h4>
+            <button
+              className="mt-2 px-4 py-2 bg-green-500 text-white rounded transition hover:bg-green-600"
+              onClick={fetchLocation}
+              disabled={loadingState.location}
+            >
+              {loadingState.location
+                ? 'Loading...'
+                : 'Load Location Encounters'}
+            </button>
+            {locationEncounters?.length ? (
+              <ul className="list-disc ml-4">
+                {locationEncounters.map((loc, index) => (
+                  <li key={index}>
+                    {loc.location_area.name} -{' '}
+                    {loc.version_details?.[0]?.encounter_details?.[0]?.chance ||
+                      0}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              !loadingState.location && (
+                <p className="ml-4">No location encounters found.</p>
+              )
             )}
-            <img src={details.sprites.front_default} alt={name} />
-
-            <div className="location-section">
-              <h4>Location Encounters</h4>
-              <button
-                className="load-button"
-                onClick={fetchLocationEncounters}
-                disabled={loadingState.location}
-              >
-                {loadingState.location
-                  ? 'Loading...'
-                  : 'Load Location Encounters'}
-              </button>
-              {locationEncounters?.length ? (
-                <ul>
-                  {locationEncounters.map((loc, index) => (
-                    <li key={index}>
-                      {loc.location_area.name} -{' '}
-                      {loc.version_details?.[0]?.encounter_details?.[0]
-                        ?.chance || 0}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                !loadingState.location && <p>No location encounters found.</p>
-              )}
-            </div>
-
-            <div className="evolution-section">
-              <h4>Evolution Chain</h4>
-              <button
-                className="load-button"
-                onClick={fetchEvolutionChain}
-                disabled={loadingState.evolution}
-              >
-                {loadingState.evolution
-                  ? 'Loading Evolution Chain...'
-                  : 'Load Evolution Chain'}
-              </button>
-              {evolutionChain?.length ? (
-                <ul>
-                  {evolutionChain.map((poke, index) => (
-                    <li key={index}>{poke}</li>
-                  ))}
-                </ul>
-              ) : (
-                !loadingState.evolution && (
-                  <p>No evolution chain data available.</p>
-                )
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+          </section>
+          <section className="border-t pt-4">
+            <h4 className="text-xl font-bold">Evolution Chain</h4>
+            <button
+              className="mt-2 px-4 py-2 bg-purple-500 text-white rounded transition hover:bg-purple-600"
+              onClick={fetchEvolution}
+              disabled={loadingState.evolution}
+            >
+              {loadingState.evolution
+                ? 'Loading Evolution Chain...'
+                : 'Load Evolution Chain'}
+            </button>
+            {evolutionChain?.length ? (
+              <ul className="list-disc ml-4">
+                {evolutionChain.map((poke, index) => (
+                  <li key={index}>{poke}</li>
+                ))}
+              </ul>
+            ) : (
+              !loadingState.evolution && (
+                <p className="ml-4">No evolution chain data available.</p>
+              )
+            )}
+          </section>
+        </section>
+      )}
+    </article>
   );
 };
 

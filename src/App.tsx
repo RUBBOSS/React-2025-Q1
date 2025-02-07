@@ -4,6 +4,7 @@ import Search from './components/Search';
 import Results from './components/Results';
 import ErrorThrowingComponent from './components/ErrorThrowingComponent';
 import './App.css';
+import { SearchProvider } from './context/SearchContext';
 
 const App = () => {
   const [shouldThrowError, setShouldThrowError] = useState(false);
@@ -15,15 +16,17 @@ const App = () => {
   return (
     <div className="app-container">
       <ErrorBoundary resetErrorState={resetErrorState}>
-        <Search />
-        <Results />
-        <button
-          className="error-button"
-          onClick={() => setShouldThrowError(true)}
-        >
-          Trigger Error
-        </button>
-        <ErrorThrowingComponent shouldThrow={shouldThrowError} />
+        <SearchProvider>
+          <Search />
+          <Results />
+          <button
+            className="error-button"
+            onClick={() => setShouldThrowError(true)}
+          >
+            Trigger Error
+          </button>
+          <ErrorThrowingComponent shouldThrow={shouldThrowError} />
+        </SearchProvider>
       </ErrorBoundary>
     </div>
   );

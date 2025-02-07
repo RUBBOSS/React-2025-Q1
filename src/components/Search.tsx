@@ -1,10 +1,10 @@
 import { useState, ChangeEvent } from 'react';
+import { useSearch } from '../context/SearchContext';
 import Loader from './Loader';
 
 const Search = () => {
-  const savedSearchTerm = localStorage.getItem('searchTerm') || '';
-  const [searchTerm, setSearchTerm] = useState(savedSearchTerm);
   const [loading, setLoading] = useState(false);
+  const { searchTerm, setSearchTerm } = useSearch();
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -15,33 +15,27 @@ const Search = () => {
     localStorage.setItem('searchTerm', trimmedTerm);
     setLoading(true);
 
-    const event = new CustomEvent('search', { detail: trimmedTerm });
-    window.dispatchEvent(event);
+    setSearchTerm(trimmedTerm); // This will trigger Results to fetch
 
-    await fetchSearchResults(trimmedTerm);
-
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
     setLoading(false);
   };
 
-  const fetchSearchResults = (term: string) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log(`Results for: ${term}`);
-        resolve(true);
-      }, 1000);
-    });
-  };
-
   return (
-    <div className="search-container">
+    <div className="flex items-center justify-center gap-4 my-4">
       <input
         type="text"
         placeholder="Search Pokémon"
         value={searchTerm}
         onChange={handleInputChange}
+        className="px-4 py-2 border-4 border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
-      <button onClick={handleSearch}>Search</button>
-
+      <button
+        onClick={handleSearch}
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+      >
+        Search
+      </button>
       {loading && <Loader />}
     </div>
   );
