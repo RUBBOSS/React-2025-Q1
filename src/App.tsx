@@ -1,34 +1,17 @@
-import { useState } from 'react';
-import ErrorBoundary from './components/ErrorBoundary';
-import Search from './components/Search';
-import Results from './components/Results';
-import ErrorThrowingComponent from './components/ErrorThrowingComponent';
-import './App.css';
+import { BrowserRouter } from 'react-router-dom';
 import { SearchProvider } from './context/SearchContext';
+import Layout from './components/Layout';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const App = () => {
-  const [shouldThrowError, setShouldThrowError] = useState(false);
-
-  const resetErrorState = () => {
-    setShouldThrowError(false);
-  };
-
   return (
-    <div className="app-container">
-      <ErrorBoundary resetErrorState={resetErrorState}>
+    <BrowserRouter>
+      <ErrorBoundary>
         <SearchProvider>
-          <Search />
-          <Results />
-          <button
-            className="error-button"
-            onClick={() => setShouldThrowError(true)}
-          >
-            Trigger Error
-          </button>
-          <ErrorThrowingComponent shouldThrow={shouldThrowError} />
+          <Layout />
         </SearchProvider>
       </ErrorBoundary>
-    </div>
+    </BrowserRouter>
   );
 };
 

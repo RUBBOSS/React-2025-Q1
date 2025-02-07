@@ -1,6 +1,7 @@
 export interface Ability {
   ability: {
     name: string;
+    url: string;
   };
   is_hidden: boolean;
   slot: number;
@@ -9,19 +10,24 @@ export interface Ability {
 export interface Type {
   type: {
     name: string;
+    url: string;
   };
+  slot: number;
 }
 
 export interface Stat {
   base_stat: number;
+  effort: number;
   stat: {
     name: string;
+    url: string;
   };
 }
 
 export interface Move {
   move: {
     name: string;
+    url: string;
   };
 }
 
@@ -29,6 +35,7 @@ export interface GameIndex {
   game_index: number;
   version: {
     name: string;
+    url: string;
   };
 }
 
@@ -39,19 +46,22 @@ export interface HeldItem {
 }
 
 export interface PokemonDetails {
+  id: number;
+  name: string;
+  base_experience: number;
   height: number;
   weight: number;
-  base_experience: number;
+  sprites: {
+    front_default: string;
+    back_default: string;
+  };
+  stats: Stat[];
   types: Type[];
   abilities: Ability[];
-  stats: Stat[];
   moves: Move[];
   game_indices: GameIndex[];
   held_items: HeldItem[];
   location_area_encounters: string;
-  sprites: {
-    front_default: string;
-  };
   species: {
     name: string;
     url: string;
@@ -86,4 +96,33 @@ export interface EvolutionNode {
     url: string;
   };
   evolves_to: EvolutionNode[];
+}
+
+export interface EvolutionDetail {
+  min_level?: number;
+  trigger: {
+    name: string;
+    url: string;
+  };
+}
+
+export interface ChainLink {
+  is_baby: boolean;
+  species: {
+    name: string;
+    url: string;
+  };
+  evolution_details: EvolutionDetail[] | null;
+  evolves_to: ChainLink[];
+}
+
+export interface EvolutionChainResponse {
+  chain: ChainLink;
+}
+
+export interface SimplifiedEvolutionNode {
+  name: string;
+  level: number;
+  min_level?: number;
+  trigger?: string;
 }

@@ -1,24 +1,38 @@
 import { useState, ChangeEvent } from 'react';
 import { useSearch } from '../context/SearchContext';
 import Loader from './Loader';
+import { useSearchParams } from 'react-router-dom';
 
 const Search = () => {
   const [loading, setLoading] = useState(false);
+  const [inputValue, setInputValue] = useState('');
   const { searchTerm, setSearchTerm } = useSearch();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+    setInputValue(e.target.value);
   };
 
   const handleSearch = async () => {
-    const trimmedTerm = searchTerm.trim();
-    localStorage.setItem('searchTerm', trimmedTerm);
-    setLoading(true);
+    const trimmedTerm = inputValue.trim();
+    if (trimmedTerm !== searchTerm) {
+      setLoading(true);
 
-    setSearchTerm(trimmedTerm); // This will trigger Results to fetch
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set('page', '1');
+      if (trimmedTerm) {
+        newParams.set('query', trimmedTerm);
+      } else {
+        newParams.delete('query');
+      }
+      setSearchParams(newParams);
 
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
-    setLoading(false);
+      setSearchTerm(trimmedTerm);
+      localStorage.setItem('searchTerm', trimmedTerm);
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setLoading(false);
+    }
   };
 
   return (
@@ -26,7 +40,7 @@ const Search = () => {
       <input
         type="text"
         placeholder="Search Pokémon"
-        value={searchTerm}
+        value={inputValue}
         onChange={handleInputChange}
         className="px-4 py-2 border-4 border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
       />

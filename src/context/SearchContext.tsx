@@ -8,7 +8,9 @@ interface SearchContextType {
 const SearchContext = createContext<SearchContextType | undefined>(undefined);
 
 export const SearchProvider = ({ children }: { children: ReactNode }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(
+    () => localStorage.getItem('searchTerm') || ''
+  );
 
   return (
     <SearchContext.Provider value={{ searchTerm, setSearchTerm }}>
