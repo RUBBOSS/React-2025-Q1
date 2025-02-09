@@ -1,13 +1,22 @@
-import { useState, ChangeEvent } from 'react';
+import { useState, ChangeEvent, useEffect } from 'react';
 import { useSearch } from '../context/SearchContext.tsx';
 import Loader from './Loader';
 import { useSearchParams } from 'react-router-dom';
 
 const Search = () => {
-  const [loading, setLoading] = useState(false);
-  const [inputValue, setInputValue] = useState('');
   const { searchTerm, setSearchTerm } = useSearch();
+  const initialTerm = localStorage.getItem('searchTerm') ?? '';
+  const [inputValue, setInputValue] = useState(initialTerm);
+  const [loading, setLoading] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (initialTerm) setSearchTerm(initialTerm);
+  }, [initialTerm, setSearchTerm]);
+
+  useEffect(() => {
+    if (searchTerm) setInputValue(searchTerm);
+  }, [searchTerm]);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);

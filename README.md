@@ -1,25 +1,24 @@
-# React Vite Class Components Pokémon Search App
+# React Vite Pokémon Search App
 
-This project is a React application built using Vite and TypeScript. It demonstrates the use of class components (no hooks are used), error boundaries, ESLint, Prettier, and Husky for code quality, along with integration with the [PokeAPI](https://pokeapi.co/). The app is structured into two main sections:
+This project is a React application built using Vite and TypeScript. It demonstrates the use of functional components with hooks, error boundaries, ESLint, Prettier, and Husky for code quality, along with integration with the [PokeAPI](https://pokeapi.co/). The app is structured into two main sections:
 
 - **Top Section**: Contains a search input and a "Search" button. It retrieves a previously saved search term from local storage and uses it to make API calls.
-- **Main Section**: Displays search results in a grid of cards (3 columns on large screens) with details about each Pokémon. Each card includes additional details such as height, weight, base experience, types, abilities, stats, moves, game indices, held items, and extra sections for location encounters and evolution chain details. A loader is displayed while data is being fetched.
+- **Main Section**: Displays search results in a grid of cards with details about each Pokémon. Each card includes details such as height, weight, base experience, types, abilities, stats, moves, and extra sections for location encounters and evolution chain details. A loader is displayed while data is being fetched.
 
-The app is also wrapped in an `ErrorBoundary` that logs errors to the console and displays a fallback UI with a button to trigger an error for testing purposes.
+The app is also wrapped in an `ErrorBoundary` that catches errors, logs them to the console, and displays a fallback UI with a button to trigger an error for testing purposes.
 
 ---
 
 ## Features
 
 - **React Vite Setup with TypeScript**: Bootstrapped using the React TypeScript template.
-- **Class Components Only**: All components are implemented as class components to utilize lifecycle methods and state management without hooks.
+- **Functional Components with Hooks**: Components are implemented as functional components using hooks for state and effects.
 - **Search Input with Local Storage**: The search term is stored in local storage so that it persists between sessions.
 - **API Integration**: Uses the PokeAPI to fetch Pokémon data based on the search term. If the search term is empty, it fetches a default list.
-- **Loader & Error Handling**: A loader is displayed while API calls are in progress. Error messages are shown if the request fails.
-- **Grid Layout of Cards**: Displays search results in a responsive 3-column grid (adjustable for smaller screens).
-- **Detailed Pokémon Cards**: Each card shows comprehensive Pokémon details and includes extra sections for location encounters and evolution chain data.
-- **Error Boundary**: The entire app is wrapped in an `ErrorBoundary` that catches rendering errors, logs them, and shows a fallback UI.
-- **Code Quality Tools**: ESLint, Prettier, and Husky are integrated to ensure consistent formatting and linting.
+- **Loader & Error Handling**: A loader is displayed during API calls. Error messages are shown if the request fails.
+- **Responsive Grid Layout**: Displays search results in a responsive grid layout.
+- **Error Boundary**: The app is wrapped in an `ErrorBoundary` to catch and handle rendering errors.
+- **Code Quality Tools**: Integrated ESLint, Prettier, and Husky to ensure consistent coding standards.
 
 ---
 
@@ -35,50 +34,34 @@ The app is also wrapped in an `ErrorBoundary` that logs errors to the console an
 1. **Clone the Repository**
    ```bash
    git clone https://github.com/yourusername/rs-react-app.git
-   Navigate into the Project Directory
    cd rs-react-app
    ```
 
-Install Dependencies
-npm install
+2. **Install Dependencies**
+   ```bash
+   npm install
+   ```
 
-Set Up Code Quality Tools
-ESLint: The React Vite template includes ESLint. To verify there are no linting issues, run:
-npm run lint
+3. **Set Up Code Quality Tools**
+   - **ESLint**: Verify there are no linting issues with:
+     ```bash
+     npm run lint
+     ```
+   - **Prettier**: Format files with:
+     ```bash
+     npm run format:fix
+     ```
+   - **Husky**: Pre-commit hooks are set to run linting before commits.
 
-Prettier:
-Install Prettier and related plugins:
-npm install -D --save-exact prettier eslint-plugin-react eslint-plugin-prettier eslint-config-prettier
+4. **Run the Development Server**
+   ```bash
+   npm run dev
+   ```
+   Open your browser and navigate to http://localhost:5173 (or the port provided by Vite) to see the application in action.
 
-Create a .prettierrc file in the root with the following content:
-{
-"trailingComma": "es5",
-"tabWidth": 2,
-"semi": true,
-"singleQuote": true,
-"endOfLine": "lf"
-}
+---
 
-Add a script in your package.json to format files:
-"scripts": {
-"format:fix": "prettier --write ."
-}
-
-Husky:
-Install Husky:
-npm install --save-dev husky
-
-Initialize Husky:
-npx husky install
-
-Add a pre-commit hook to run linting:
-npx husky add .husky/pre-commit "npm run lint"
-
-Run the Development Server
-npm run dev
-Open Your Browser Navigate to http://localhost:5173 (or the port provided by Vite) to see the application in action.
-
-Project Structure
+## Project Structure
 rs-react-app/
 ├── src/
 │ ├── assets/ # Images and static assets
@@ -95,3 +78,22 @@ rs-react-app/
 ├── package.json # Project dependencies and scripts
 ├── tsconfig.json # TypeScript configuration
 └── README.md # This file
+
+## Running Tests
+
+This project uses Vitest for unit testing. To run tests, use the following commands:
+
+- Run all tests:
+  ```bash
+  npm run test
+  ```
+
+- Run tests with a UI:
+  ```bash
+  npm run test:ui
+  ```
+
+- Run tests with coverage report:
+  ```bash
+  npm run test:coverage
+  ```

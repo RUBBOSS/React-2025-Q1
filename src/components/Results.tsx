@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearch } from '../context/SearchContext.tsx';
 import Loader from './Loader';
 import Card from './Card';
@@ -10,7 +10,6 @@ interface Result {
   url: string;
 }
 
-// Change items per page to 9
 const ITEMS_PER_PAGE = 9;
 
 const Results = () => {
@@ -22,46 +21,50 @@ const Results = () => {
   const currentPage = Number(searchParams.get('page')) || 1;
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchResults(searchTerm);
-  }, [searchTerm]);
+  const fetchResults = useCallback(
+    async (query: string) => {
+      setLoading(true);
+      setError(null);
 
-  const fetchResults = async (searchTerm: string) => {
-    setLoading(true);
-    setError(null);
+      try {
+        const apiUrl = query
+          ? `https://pokeapi.co/api/v2/pokemon/${query.toLowerCase()}`
+          : `https://pokeapi.co/api/v2/pokemon?limit=150`;
 
-    try {
-      const apiUrl = searchTerm
-        ? `https://pokeapi.co/api/v2/pokemon/${searchTerm.toLowerCase()}`
-        : `https://pokeapi.co/api/v2/pokemon?limit=150`;
+        const response = await fetch(apiUrl);
 
-      const response = await fetch(apiUrl);
-
-      if (!response.ok) {
-        if (response.status === 404 && searchTerm) {
+        if (response.status === 404 && query) {
           navigate('/404');
           return;
         }
-        throw new Error('Failed to fetch data. Please try again.');
-      }
 
-      const data = await response.json();
-      const resultsData = searchTerm
-        ? [{ name: data.name, url: apiUrl }]
-        : data.results;
+        if (!response.ok) {
+          throw new Error('Failed to fetch data. Please try again.');
+        }
 
-      setResults(resultsData);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError('An unknown error occurred');
+        const data = await response.json();
+        const resultsData = query
+          ? [{ name: data.name, url: apiUrl }]
+          : data.results;
+
+        setResults(resultsData);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          setError(error.message);
+        } else {
+          setError('An unknown error occurred');
+        }
+        setResults([]);
+      } finally {
+        setLoading(false);
       }
-      setResults([]); // Clear results on error
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [navigate] // removed 'searchTerm'
+  );
+
+  useEffect(() => {
+    fetchResults(searchTerm);
+  }, [fetchResults, searchTerm]);
 
   const resetToMainList = () => {
     localStorage.removeItem('searchTerm');
@@ -69,7 +72,6 @@ const Results = () => {
   };
 
   const handleSectionClick = (e: React.MouseEvent) => {
-    // Only close if clicking the container, not a card
     if (e.target === e.currentTarget) {
       searchParams.delete('details');
       setSearchParams(searchParams);

@@ -1,20 +1,12 @@
-import React, { createContext, useState, ReactNode, useContext } from 'react';
+import React, { createContext, useContext, useState } from 'react';
+import { SearchContextProps } from './searchTypes';
 
-type SearchContextType = {
-  searchTerm: string;
-  setSearchTerm: (value: string) => void;
-};
+const SearchContext = createContext<SearchContextProps | undefined>(undefined);
 
-export const SearchContext = createContext<SearchContextType | undefined>(
-  undefined
-);
-
-type Props = {
-  children: ReactNode;
-};
-
-export const SearchProvider: React.FC<Props> = ({ children }) => {
-  const [searchTerm, setSearchTerm] = useState<string>('');
+export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [searchTerm, setSearchTerm] = useState('');
   return (
     <SearchContext.Provider value={{ searchTerm, setSearchTerm }}>
       {children}
@@ -22,7 +14,7 @@ export const SearchProvider: React.FC<Props> = ({ children }) => {
   );
 };
 
-export const useSearch = () => {
+export const useSearch = (): SearchContextProps => {
   const context = useContext(SearchContext);
   if (!context) {
     throw new Error('useSearch must be used within a SearchProvider');

@@ -1,10 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import {
-  fetchPokemonDetails,
-  fetchSpeciesDetails,
-  fetchEvolutionChain,
-} from '../api/pokeapi';
+import { fetchSpeciesDetails, fetchEvolutionChain } from '../api/pokeapi';
 import Loader from './Loader';
 import {
   PokemonDetails,
@@ -12,7 +8,7 @@ import {
   SimplifiedEvolutionNode,
 } from '../types/pokemon';
 
-const Details = () => {
+const Details: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,55 +23,25 @@ const Details = () => {
   const pokemonId = searchParams.get('details');
   const detailsRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (pokemonId) {
-      fetchDetails(pokemonId);
-    }
-  }, [pokemonId]);
+  const extractEvolutionChain = useCallback(
+    (chain: ChainLink, level = 1): SimplifiedEvolutionNode[] => {
+      const current: SimplifiedEvolutionNode = {
+        name: chain.species.name,
+        level,
+        min_level: chain.evolution_details?.[0]?.min_level,
+        trigger: chain.evolution_details?.[0]?.trigger?.name,
+      };
 
-  useEffect(() => {
-    if (details?.species?.url) {
-      fetchEvolutionData();
-    }
-  }, [details]);
+      const evolutions = chain.evolves_to
+        .map((next) => extractEvolutionChain(next, level + 1))
+        .flat();
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        (event.target as HTMLElement).closest('.card') ||
-        (event.target as HTMLElement).closest('.results') // added check for Results.tsx elements
-      )
-        return;
-      if (
-        detailsRef.current &&
-        !detailsRef.current.contains(event.target as Node)
-      ) {
-        handleClose();
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [detailsRef]);
+      return [current, ...evolutions];
+    },
+    []
+  );
 
-  const fetchDetails = async (id: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await fetchPokemonDetails(
-        `https://pokeapi.co/api/v2/pokemon/${id}/`
-      );
-      setDetails(data);
-    } catch (err) {
-      setError('Failed to fetch Pokémon details');
-      console.error('Failed to fetch details:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchEvolutionData = async () => {
+  const fetchEvolutionData = useCallback(async () => {
     if (!details?.species?.url) return;
 
     setLoadingEvolution(true);
@@ -86,7 +52,6 @@ const Details = () => {
       );
       const chain = extractEvolutionChain(evolutionData.chain);
 
-      // Fetch sprites for each evolution
       const sprites: Record<string, string> = {};
       for (const evo of chain) {
         try {
@@ -106,29 +71,59 @@ const Details = () => {
     } finally {
       setLoadingEvolution(false);
     }
-  };
+  }, [details, extractEvolutionChain]);
 
-  const extractEvolutionChain = (
-    chain: ChainLink,
-    level = 1
-  ): SimplifiedEvolutionNode[] => {
-    const current: SimplifiedEvolutionNode = {
-      name: chain.species.name,
-      level,
-      min_level: chain.evolution_details?.[0]?.min_level,
-      trigger: chain.evolution_details?.[0]?.trigger?.name,
-    };
-
-    const evolutions = chain.evolves_to
-      .map((next) => extractEvolutionChain(next, level + 1))
-      .flat();
-
-    return [current, ...evolutions];
-  };
-
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     searchParams.delete('details');
     setSearchParams(searchParams);
+  }, [searchParams, setSearchParams]);
+
+  useEffect(() => {
+    if (pokemonId) {
+      fetchDetails(pokemonId);
+    }
+  }, [pokemonId]);
+
+  useEffect(() => {
+    if (details?.species?.url) {
+      fetchEvolutionData();
+    }
+  }, [details, fetchEvolutionData]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        (event.target as HTMLElement).closest('.card') ||
+        (event.target as HTMLElement).closest('.results')
+      )
+        return;
+      if (
+        detailsRef.current &&
+        !detailsRef.current.contains(event.target as Node)
+      ) {
+        handleClose();
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [detailsRef, handleClose]);
+
+  const fetchDetails = async (id: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}/`);
+      if (!res.ok) throw new Error('Failed to fetch data');
+      const data = await res.json();
+      setDetails(data);
+    } catch (err: unknown) {
+      setError('Failed to fetch data. Please try again.');
+      console.error('Failed to fetch details:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading)
@@ -138,18 +133,18 @@ const Details = () => {
       </div>
     );
 
-  if (error)
+  if (error) {
     return (
-      <div className="h-full p-6 bg-white shadow-lg">
-        <div className="text-red-500 text-center">{error}</div>
-        <button
-          onClick={handleClose}
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 w-full"
+      <div className="p-4 text-center">
+        <p
+          data-testid="error-message"
+          className="text-red-500 text-lg font-semibold"
         >
-          Close
-        </button>
+          {error}
+        </p>
       </div>
     );
+  }
 
   if (!details) return null;
 
@@ -165,7 +160,6 @@ const Details = () => {
         ✕
       </button>
 
-      {/* Header Section */}
       <div className="flex items-center gap-6 mb-8">
         <img
           src={details.sprites.front_default}
@@ -187,7 +181,6 @@ const Details = () => {
         </div>
       </div>
 
-      {/* Base Stats Section */}
       <section className="mb-8">
         <h3 className="text-xl font-bold mb-4">Base Stats</h3>
         <div className="grid grid-cols-2 gap-4">
@@ -210,7 +203,6 @@ const Details = () => {
         </div>
       </section>
 
-      {/* Evolution Chain Section */}
       <section className="mb-8">
         <h3 className="text-xl font-bold mb-4">Evolution Chain</h3>
         {loadingEvolution ? (
@@ -244,17 +236,16 @@ const Details = () => {
         )}
       </section>
 
-      {/* Physical Characteristics */}
       <section className="mb-8">
         <h3 className="text-xl font-bold mb-4">Characteristics</h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <span className="text-gray-600">Height</span>
-            <p className="font-medium">{details.height / 10}m</p>
+            {/* UPDATED: Combine label and value for height */}
+            <p className="font-medium">Height: {details.height / 10}m</p>
           </div>
           <div>
-            <span className="text-gray-600">Weight</span>
-            <p className="font-medium">{details.weight / 10}kg</p>
+            {/* UPDATED: Combine label and value for weight */}
+            <p className="font-medium">Weight: {details.weight / 10}kg</p>
           </div>
           <div>
             <span className="text-gray-600">Base Experience</span>
@@ -263,11 +254,10 @@ const Details = () => {
         </div>
       </section>
 
-      {/* Abilities Section */}
       <section className="mb-8">
         <h3 className="text-xl font-bold mb-4">Abilities</h3>
         <div className="grid gap-2">
-          {details.abilities.map((ability) => (
+          {(details.abilities || []).map((ability) => (
             <div
               key={ability.ability.name}
               className="p-2 bg-gray-50 rounded flex items-center justify-between"
@@ -283,11 +273,10 @@ const Details = () => {
         </div>
       </section>
 
-      {/* Moves Section */}
       <section className="mb-8">
         <h3 className="text-xl font-bold mb-4">Signature Moves</h3>
         <div className="grid gap-2">
-          {details.moves.slice(0, 5).map((move) => (
+          {(details.moves || []).slice(0, 5).map((move) => (
             <div key={move.move.name} className="p-2 bg-gray-50 rounded">
               <span className="capitalize">
                 {move.move.name.replace('-', ' ')}
@@ -301,3 +290,10 @@ const Details = () => {
 };
 
 export default Details;
+async function fetchPokemonDetails(url: string): Promise<PokemonDetails> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch pokemon details from ${url}`);
+  }
+  return response.json();
+}
