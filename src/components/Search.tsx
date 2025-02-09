@@ -1,5 +1,5 @@
 import { useState, ChangeEvent } from 'react';
-import { useSearch } from '../context/SearchContext';
+import { useSearch } from '../context/SearchContext.tsx';
 import Loader from './Loader';
 import { useSearchParams } from 'react-router-dom';
 

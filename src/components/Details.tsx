@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   fetchPokemonDetails,
@@ -25,6 +25,7 @@ const Details = () => {
     Record<string, string>
   >({});
   const pokemonId = searchParams.get('details');
+  const detailsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (pokemonId) {
@@ -37,6 +38,26 @@ const Details = () => {
       fetchEvolutionData();
     }
   }, [details]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        (event.target as HTMLElement).closest('.card') ||
+        (event.target as HTMLElement).closest('.results') // added check for Results.tsx elements
+      )
+        return;
+      if (
+        detailsRef.current &&
+        !detailsRef.current.contains(event.target as Node)
+      ) {
+        handleClose();
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [detailsRef]);
 
   const fetchDetails = async (id: string) => {
     setLoading(true);
@@ -133,7 +154,10 @@ const Details = () => {
   if (!details) return null;
 
   return (
-    <div className="h-full p-6 bg-white shadow-lg relative overflow-y-auto">
+    <div
+      ref={detailsRef}
+      className="h-full p-6 bg-white shadow-lg relative overflow-y-auto"
+    >
       <button
         onClick={handleClose}
         className="absolute top-4 right-4 p-2 rounded-full bg-gray-200 hover:bg-gray-300"

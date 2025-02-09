@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useSearch } from '../context/SearchContext';
+import { useSearch } from '../context/SearchContext.tsx';
 import Loader from './Loader';
 import Card from './Card';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Pagination from './Pagination';
 
 interface Result {
@@ -20,6 +20,7 @@ const Results = () => {
   const { searchTerm } = useSearch();
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = Number(searchParams.get('page')) || 1;
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchResults(searchTerm);
@@ -32,17 +33,21 @@ const Results = () => {
     try {
       const apiUrl = searchTerm
         ? `https://pokeapi.co/api/v2/pokemon/${searchTerm.toLowerCase()}`
-        : `https://pokeapi.co/api/v2/pokemon?limit=150`; // Increased limit to show more pages
+        : `https://pokeapi.co/api/v2/pokemon?limit=150`;
 
       const response = await fetch(apiUrl);
 
       if (!response.ok) {
+        if (response.status === 404 && searchTerm) {
+          navigate('/404');
+          return;
+        }
         throw new Error('Failed to fetch data. Please try again.');
       }
 
       const data = await response.json();
       const resultsData = searchTerm
-        ? [{ name: data.name, url: data.url }]
+        ? [{ name: data.name, url: apiUrl }]
         : data.results;
 
       setResults(resultsData);
@@ -52,6 +57,7 @@ const Results = () => {
       } else {
         setError('An unknown error occurred');
       }
+      setResults([]); // Clear results on error
     } finally {
       setLoading(false);
     }
@@ -90,7 +96,7 @@ const Results = () => {
 
   return (
     <div onClick={handleSectionClick}>
-      <div className="grid gap-8 mt-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 px-6">
+      <div className="results grid gap-8 mt-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 px-6">
         {paginatedItems.length > 0 ? (
           paginatedItems.map((result) => (
             <Card

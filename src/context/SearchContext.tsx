@@ -1,17 +1,20 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useState, ReactNode, useContext } from 'react';
 
-interface SearchContextType {
+type SearchContextType = {
   searchTerm: string;
-  setSearchTerm: (term: string) => void;
-}
+  setSearchTerm: (value: string) => void;
+};
 
-const SearchContext = createContext<SearchContextType | undefined>(undefined);
+export const SearchContext = createContext<SearchContextType | undefined>(
+  undefined
+);
 
-export const SearchProvider = ({ children }: { children: ReactNode }) => {
-  const [searchTerm, setSearchTerm] = useState(
-    () => localStorage.getItem('searchTerm') || ''
-  );
+type Props = {
+  children: ReactNode;
+};
 
+export const SearchProvider: React.FC<Props> = ({ children }) => {
+  const [searchTerm, setSearchTerm] = useState<string>('');
   return (
     <SearchContext.Provider value={{ searchTerm, setSearchTerm }}>
       {children}
@@ -21,7 +24,7 @@ export const SearchProvider = ({ children }: { children: ReactNode }) => {
 
 export const useSearch = () => {
   const context = useContext(SearchContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useSearch must be used within a SearchProvider');
   }
   return context;
