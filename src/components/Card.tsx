@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+import { addItem, removeItem } from '../features/selectedItemsSlice';
 
 interface CardProps {
   name: string;
@@ -10,6 +13,10 @@ const Card: React.FC<CardProps> = ({ name, url }) => {
   const [imageError, setImageError] = useState(false);
   const [pokeId, setPokeId] = useState('');
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const isSelected = useSelector(
+    (state: RootState) => !!state.selectedItems.items[name]
+  );
 
   useEffect(() => {
     const segments = url.split('/').filter(Boolean);
@@ -34,6 +41,14 @@ const Card: React.FC<CardProps> = ({ name, url }) => {
     navigate(`/?details=${pokeId}`);
   };
 
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      dispatch(addItem({ name, url }));
+    } else {
+      dispatch(removeItem(name));
+    }
+  };
+
   return (
     <article
       onClick={handleClick}
@@ -54,6 +69,15 @@ const Card: React.FC<CardProps> = ({ name, url }) => {
           No image
         </div>
       )}
+      <div className="mt-4">
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={handleCheckboxChange}
+          onClick={(e) => e.stopPropagation()} // Prevent triggering card onClick
+          className="form-checkbox"
+        />
+      </div>
     </article>
   );
 };

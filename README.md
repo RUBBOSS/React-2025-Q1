@@ -32,17 +32,20 @@ The app is also wrapped in an `ErrorBoundary` that catches errors, logs them to 
 ### Steps
 
 1. **Clone the Repository**
+
    ```bash
    git clone https://github.com/yourusername/rs-react-app.git
    cd rs-react-app
    ```
 
 2. **Install Dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Set Up Code Quality Tools**
+
    - **ESLint**: Verify there are no linting issues with:
      ```bash
      npm run lint
@@ -62,6 +65,7 @@ The app is also wrapped in an `ErrorBoundary` that catches errors, logs them to 
 ---
 
 ## Project Structure
+
 rs-react-app/
 ├── src/
 │ ├── assets/ # Images and static assets
@@ -84,11 +88,13 @@ rs-react-app/
 This project uses Vitest for unit testing. To run tests, use the following commands:
 
 - Run all tests:
+
   ```bash
   npm run test
   ```
 
 - Run tests with a UI:
+
   ```bash
   npm run test:ui
   ```

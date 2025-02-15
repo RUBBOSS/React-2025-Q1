@@ -151,7 +151,7 @@ const Details: React.FC = () => {
   return (
     <div
       ref={detailsRef}
-      className="h-full p-6 bg-white shadow-lg relative overflow-y-auto"
+      className="h-full p-6 bg-white shadow-lg relative overflow-y-auto text-black rounded-2xl"
     >
       <button
         onClick={handleClose}
@@ -240,11 +240,9 @@ const Details: React.FC = () => {
         <h3 className="text-xl font-bold mb-4">Characteristics</h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            {/* UPDATED: Combine label and value for height */}
             <p className="font-medium">Height: {details.height / 10}m</p>
           </div>
           <div>
-            {/* UPDATED: Combine label and value for weight */}
             <p className="font-medium">Weight: {details.weight / 10}kg</p>
           </div>
           <div>
