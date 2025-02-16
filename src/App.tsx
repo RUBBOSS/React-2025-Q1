@@ -3,6 +3,7 @@ import { Provider } from 'react-redux';
 import { store } from './store/store';
 import { SearchProvider } from './context/SearchContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { ClickOutsideProvider } from './context/ClickOutsideContext';
 import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
 import NotFound from './components/NotFound';
@@ -14,11 +15,13 @@ const App = () => {
         <BrowserRouter>
           <ErrorBoundary resetErrorState={() => {}}>
             <SearchProvider>
-              <Routes>
-                <Route path="/" element={<Layout />} />
-                <Route path="/404" element={<NotFound />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <ClickOutsideProvider>
+                <Routes>
+                  <Route path="/" element={<Layout />} />
+                  <Route path="/404" element={<NotFound />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </ClickOutsideProvider>
             </SearchProvider>
           </ErrorBoundary>
         </BrowserRouter>

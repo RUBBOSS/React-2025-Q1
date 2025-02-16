@@ -11,9 +11,16 @@ interface SelectedItemsState {
   items: Record<string, Item>;
 }
 
-const initialState: SelectedItemsState = {
-  items: {},
+const loadSelectedItems = (): SelectedItemsState => {
+  try {
+    const savedItems = localStorage.getItem('selectedItems');
+    return savedItems ? JSON.parse(savedItems) : { items: {} };
+  } catch {
+    return { items: {} };
+  }
 };
+
+const initialState: SelectedItemsState = loadSelectedItems();
 
 export const selectedItemsSlice = createSlice({
   name: 'selectedItems',
@@ -21,11 +28,13 @@ export const selectedItemsSlice = createSlice({
   reducers: {
     addItem: (state, action: PayloadAction<Item>) => {
       state.items[action.payload.name] = action.payload;
+      localStorage.setItem('selectedItems', JSON.stringify(state));
     },
     removeItem: (state, action: PayloadAction<string>) => {
       const { [action.payload]: removed, ...rest } = state.items;
       console.log(removed);
       state.items = rest;
+      localStorage.setItem('selectedItems', JSON.stringify(state));
     },
     updateItemDetails: (
       state,
@@ -36,10 +45,12 @@ export const selectedItemsSlice = createSlice({
           ...state.items[action.payload.name],
           ...action.payload.details,
         };
+        localStorage.setItem('selectedItems', JSON.stringify(state));
       }
     },
     clearSelected: (state) => {
       state.items = {};
+      localStorage.setItem('selectedItems', JSON.stringify(state));
     },
   },
 });
