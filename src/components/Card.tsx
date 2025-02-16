@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { addItem, removeItem } from '../features/selectedItemsSlice';
@@ -13,6 +13,7 @@ const Card: React.FC<CardProps> = ({ name, url }) => {
   const [imageError, setImageError] = useState(false);
   const [pokeId, setPokeId] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const isSelected = useSelector(
     (state: RootState) => !!state.selectedItems.items[name]
@@ -37,13 +38,16 @@ const Card: React.FC<CardProps> = ({ name, url }) => {
     ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokeId}.png`
     : '';
 
-  const handleClick = () => {
-    navigate(`/?details=${pokeId}`);
-  };
+  const handleClick = useCallback(() => {
+    const currentParams = new URLSearchParams(location.search);
+    currentParams.set('details', pokeId);
+    navigate(`${location.pathname}?${currentParams.toString()}`);
+  }, [location, pokeId, navigate]);
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
-      dispatch(addItem({ name, url }));
+      // Include a description (this can be a default or fetched value)
+      dispatch(addItem({ name, url, description: `Pokémon ${name}` }));
     } else {
       dispatch(removeItem(name));
     }

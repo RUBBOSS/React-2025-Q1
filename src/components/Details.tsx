@@ -1,12 +1,22 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { fetchSpeciesDetails, fetchEvolutionChain } from '../api/pokeapi';
 import Loader from './Loader';
 import {
   PokemonDetails,
   ChainLink,
   SimplifiedEvolutionNode,
 } from '../types/pokemon';
+import useOnClickOutside from '../hooks/useOnClickOutside';
+import { fetchSpeciesDetails, fetchEvolutionChain } from '../api/pokeapi';
+
+// Move fetchPokemonDetails higher so it's available for fetchEvolutionData
+const fetchPokemonDetails = async (url: string): Promise<PokemonDetails> => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch pokemon details from ${url}`);
+  }
+  return response.json();
+};
 
 const Details: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -73,10 +83,14 @@ const Details: React.FC = () => {
     }
   }, [details, extractEvolutionChain]);
 
+  // Update handleClose to clone search parameters before deleting "details"
   const handleClose = useCallback(() => {
-    searchParams.delete('details');
-    setSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams);
+    params.delete('details');
+    setSearchParams(params);
   }, [searchParams, setSearchParams]);
+
+  useOnClickOutside(detailsRef, handleClose);
 
   useEffect(() => {
     if (pokemonId) {
@@ -89,26 +103,6 @@ const Details: React.FC = () => {
       fetchEvolutionData();
     }
   }, [details, fetchEvolutionData]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        (event.target as HTMLElement).closest('.card') ||
-        (event.target as HTMLElement).closest('.results')
-      )
-        return;
-      if (
-        detailsRef.current &&
-        !detailsRef.current.contains(event.target as Node)
-      ) {
-        handleClose();
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [detailsRef, handleClose]);
 
   const fetchDetails = async (id: string) => {
     setLoading(true);
@@ -288,10 +282,3 @@ const Details: React.FC = () => {
 };
 
 export default Details;
-async function fetchPokemonDetails(url: string): Promise<PokemonDetails> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch pokemon details from ${url}`);
-  }
-  return response.json();
-}

@@ -1,8 +1,7 @@
 import { useTheme } from '../context/ThemeContext';
 
 const ThemeSwitcher = () => {
-  const { theme, setTheme } = useTheme();
-  const toggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light');
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <div className="p-4 flex justify-end items-center">
