@@ -1,12 +1,14 @@
-import React, { createContext, useRef, useCallback } from 'react';
+import React, { useRef, useCallback, createContext } from 'react';
 
 type ClickOutsideCallback = (e: MouseEvent | TouchEvent) => void;
-interface ClickOutsideContextInterface {
+
+interface ClickOutsideContextType {
   subscribe: (callback: ClickOutsideCallback) => () => void;
 }
 
-export const ClickOutsideContext =
-  createContext<ClickOutsideContextInterface | null>(null);
+export const ClickOutsideContext = createContext<ClickOutsideContextType>({
+  subscribe: () => () => {},
+});
 
 export const ClickOutsideProvider: React.FC<{ children: React.ReactNode }> = ({
   children,

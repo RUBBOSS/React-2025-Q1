@@ -1,16 +1,38 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
 import Card from '../components/Card';
+import { renderWithProviders } from '../testUtils';
+import { screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
 
 describe('Card', () => {
-  it('renders pokemon name and image', () => {
-    render(
-      <BrowserRouter>
-        <Card name="bulbasaur" url="https://pokeapi.co/api/v2/pokemon/1/" />
-      </BrowserRouter>
-    );
+  const mockState = {
+    pokemon: {
+      items: [],
+      selectedItems: [],
+      loading: false,
+      error: null,
+      currentPage: 1,
+      totalPages: 1,
+      searchTerm: '',
+    },
+    selectedItems: {
+      items: {},
+    },
+  };
 
+  beforeEach(() => {
+    mockState.pokemon.selectedItems = [];
+  });
+
+  it('renders pokemon name and image', () => {
+    renderWithProviders(
+      <Card
+        name="bulbasaur"
+        url="https://pokeapi.co/api/v2/pokemon/1/"
+        description="A strange seed was planted on its back at birth."
+      />,
+      { preloadedState: mockState }
+    );
     expect(screen.getByText('bulbasaur')).toBeInTheDocument();
     const image = screen.getByAltText('bulbasaur');
     expect(image).toBeInTheDocument();
@@ -21,10 +43,13 @@ describe('Card', () => {
   });
 
   it('shows fallback when image fails to load', () => {
-    render(
-      <BrowserRouter>
-        <Card name="test" url="https://pokeapi.co/api/v2/pokemon/999999/" />
-      </BrowserRouter>
+    renderWithProviders(
+      <Card
+        name="test"
+        url="https://pokeapi.co/api/v2/pokemon/999999/"
+        description="Test description"
+      />,
+      { preloadedState: mockState }
     );
 
     const image = screen.getByAltText('test');
@@ -34,10 +59,9 @@ describe('Card', () => {
   });
 
   it('extracts pokemon ID correctly from URL', () => {
-    render(
-      <BrowserRouter>
-        <Card name="test-pokemon" url="https://pokeapi.co/api/v2/pokemon/25/" />
-      </BrowserRouter>
+    renderWithProviders(
+      <Card name="test-pokemon" url="https://pokeapi.co/api/v2/pokemon/25/" />,
+      { preloadedState: mockState }
     );
 
     const image = screen.getByAltText('test-pokemon');
@@ -47,11 +71,23 @@ describe('Card', () => {
     );
   });
 
+  it('displays description when provided', () => {
+    const description = 'Test description';
+    renderWithProviders(
+      <Card
+        name="test"
+        url="https://pokeapi.co/api/v2/pokemon/1/"
+        description={description}
+      />,
+      { preloadedState: mockState }
+    );
+    expect(screen.getByText(description)).toBeInTheDocument();
+  });
+
   it('capitalizes pokemon name', () => {
-    render(
-      <BrowserRouter>
-        <Card name="pikachu" url="https://pokeapi.co/api/v2/pokemon/25/" />
-      </BrowserRouter>
+    renderWithProviders(
+      <Card name="pikachu" url="https://pokeapi.co/api/v2/pokemon/25/" />,
+      { preloadedState: mockState }
     );
 
     const heading = screen.getByRole('heading');

@@ -2,9 +2,8 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface Item {
   name: string;
-  description?: string;
   url: string;
-  details?: Record<string, string | number | boolean>;
+  description: string;
 }
 
 interface SelectedItemsState {
@@ -31,8 +30,8 @@ export const selectedItemsSlice = createSlice({
       localStorage.setItem('selectedItems', JSON.stringify(state));
     },
     removeItem: (state, action: PayloadAction<string>) => {
-      const { [action.payload]: removed, ...rest } = state.items;
-      console.log(removed);
+      const { [action.payload]: _, ...rest } = state.items;
+      console.log(_);
       state.items = rest;
       localStorage.setItem('selectedItems', JSON.stringify(state));
     },
@@ -40,21 +39,39 @@ export const selectedItemsSlice = createSlice({
       state,
       action: PayloadAction<{ name: string; details: Partial<Item> }>
     ) => {
-      if (state.items[action.payload.name]) {
-        state.items[action.payload.name] = {
-          ...state.items[action.payload.name],
+      const { name } = action.payload;
+      if (state.items[name]) {
+        state.items[name] = {
+          ...state.items[name],
           ...action.payload.details,
         };
         localStorage.setItem('selectedItems', JSON.stringify(state));
       }
     },
-    clearSelected: (state) => {
+    clearItems: (state) => {
       state.items = {};
+      localStorage.setItem('selectedItems', JSON.stringify(state));
+    },
+    toggleItem: (state, action: PayloadAction<Item>) => {
+      const { name } = action.payload;
+      if (name in state.items) {
+        const { [name]: _, ...rest } = state.items;
+        console.log(_);
+        state.items = rest;
+      } else {
+        state.items[name] = action.payload;
+      }
       localStorage.setItem('selectedItems', JSON.stringify(state));
     },
   },
 });
 
-export const { addItem, removeItem, updateItemDetails, clearSelected } =
-  selectedItemsSlice.actions;
+export const {
+  addItem,
+  removeItem,
+  updateItemDetails,
+  clearItems,
+  toggleItem,
+} = selectedItemsSlice.actions;
+
 export default selectedItemsSlice.reducer;

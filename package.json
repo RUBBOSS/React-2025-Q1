@@ -10,9 +10,10 @@
     "preview": "vite preview",
     "prepare": "husky",
     "format:fix": "prettier --write .",
-    "test": "vitest",
+    "test": "vitest --globals",
     "test:coverage": "vitest run --coverage",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "coverage": "vitest run --coverage --globals"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.5.1",
@@ -21,6 +22,7 @@
     "next": "^15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-error-boundary": "^5.0.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.1.5"
   },

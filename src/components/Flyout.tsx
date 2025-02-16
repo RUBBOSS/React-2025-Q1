@@ -1,7 +1,7 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { useRef } from 'react';
 import { RootState } from '../store/store';
-import { clearSelected } from '../features/selectedItemsSlice';
+import { clearItems } from '../features/selectedItemsSlice';
 
 const Flyout = () => {
   const dispatch = useDispatch();
@@ -13,8 +13,8 @@ const Flyout = () => {
 
   if (count === 0) return null;
 
-  const handleUnselectAll = () => {
-    dispatch(clearSelected());
+  const handleClearAll = () => {
+    dispatch(clearItems());
   };
 
   const handleDownload = () => {
@@ -46,7 +46,7 @@ const Flyout = () => {
         <img src="/shopping-cart.png" alt="Cart" className="w-6 h-6" />
       </div>
       <div className="flex flex-col gap-2">
-        <button onClick={handleUnselectAll}>
+        <button onClick={handleClearAll}>
           <img
             src="/remove-from-cart.png"
             alt="Remove from Cart"

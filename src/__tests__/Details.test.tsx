@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Details from '../components/Details';
 
@@ -7,10 +7,7 @@ vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
     ...actual,
-    useSearchParams: () => [
-      new URLSearchParams({ details: 'bulbasaur' }),
-      vi.fn(),
-    ],
+    useSearchParams: () => [new URLSearchParams({ details: '1' }), vi.fn()],
   };
 });
 
@@ -19,13 +16,42 @@ describe('Details', () => {
     vi.clearAllMocks();
   });
 
-  it('renders loading state initially', () => {
-    render(
+  it('renders loading state initially', async () => {
+    global.fetch = vi.fn().mockImplementation(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(
+            () =>
+              resolve({
+                ok: true,
+                json: () =>
+                  Promise.resolve({
+                    name: 'bulbasaur',
+                    height: 7,
+                    weight: 69,
+                    types: [],
+                    stats: [],
+                    sprites: {},
+                    abilities: [],
+                  }),
+              }),
+            100
+          )
+        )
+    );
+
+    const renderResult = render(
       <BrowserRouter>
         <Details />
       </BrowserRouter>
     );
-    expect(screen.getByTestId('loader')).toBeInTheDocument();
+
+    await act(async () => {});
+
+    const loader = renderResult.container.querySelector(
+      '[data-testid="loader"]'
+    );
+    expect(loader).toBeInTheDocument();
   });
 
   it('displays pokemon details after successful fetch', async () => {
@@ -53,11 +79,13 @@ describe('Details', () => {
       json: async () => mockData,
     });
 
-    render(
-      <BrowserRouter>
-        <Details />
-      </BrowserRouter>
-    );
+    await act(async () => {
+      render(
+        <BrowserRouter>
+          <Details />
+        </BrowserRouter>
+      );
+    });
 
     await waitFor(() => {
       expect(screen.getByText('bulbasaur')).toBeInTheDocument();
@@ -69,14 +97,15 @@ describe('Details', () => {
 
   it('shows error state on fetch failure', async () => {
     const mockFetchError = new Error('Failed to fetch');
-    // Use Promise.reject so the async await correctly catches the error.
     global.fetch = vi.fn().mockRejectedValue(mockFetchError);
 
-    render(
-      <BrowserRouter>
-        <Details />
-      </BrowserRouter>
-    );
+    await act(async () => {
+      render(
+        <BrowserRouter>
+          <Details />
+        </BrowserRouter>
+      );
+    });
 
     await waitFor(() => {
       const errorElement = screen.getByTestId('error-message');

@@ -7,36 +7,61 @@ vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
     ...actual,
-    useSearchParams: () => [new URLSearchParams({ page: '1' }), vi.fn()],
+    useSearchParams: () => {
+      const setSearchParams = vi.fn();
+      const searchParams = new URLSearchParams();
+      searchParams.set('page', '1');
+      return [searchParams, setSearchParams];
+    },
   };
 });
 
+const renderWithRouter = (ui: React.ReactElement) => {
+  return render(<BrowserRouter>{ui}</BrowserRouter>);
+};
+
 describe('Pagination', () => {
   it('renders pagination controls', () => {
-    render(
-      <BrowserRouter>
-        <Pagination totalItems={20} itemsPerPage={9} />
-      </BrowserRouter>
-    );
+    renderWithRouter(<Pagination totalItems={45} itemsPerPage={9} />);
 
-    const pageText = screen.getByText((_content, element) => {
-      return element?.textContent === 'Page 1 of 3';
-    });
-    expect(pageText).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'First' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Last' })).toBeInTheDocument();
+    expect(screen.getByTestId('pagination')).toBeInTheDocument();
+    expect(screen.getByText(/Page 1 of 5/)).toBeInTheDocument();
+  });
+
+  it('handles navigation buttons correctly', () => {
+    renderWithRouter(<Pagination totalItems={45} itemsPerPage={9} />);
+
+    const firstPage = screen.getByTestId('first-page');
+    const prevPage = screen.getByTestId('prev-page');
+
+    expect(firstPage).toBeDisabled();
+    expect(prevPage).toBeDisabled();
   });
 
   it('shows correct number of pages', () => {
-    render(
-      <BrowserRouter>
-        <Pagination totalItems={27} itemsPerPage={9} />
-      </BrowserRouter>
-    );
+    renderWithRouter(<Pagination totalItems={45} itemsPerPage={9} />);
 
-    const pageText = screen.getByText((_content, element) => {
-      return element?.textContent === 'Page 1 of 3';
-    });
-    expect(pageText).toBeInTheDocument();
+    expect(screen.getByText(/of 5/)).toBeInTheDocument();
+  });
+
+  it('hides pagination if only one page', () => {
+    renderWithRouter(<Pagination totalItems={9} itemsPerPage={9} />);
+    expect(screen.queryByTestId('pagination')).not.toBeInTheDocument();
+  });
+
+  it('renders page numbers', () => {
+    renderWithRouter(<Pagination totalItems={30} itemsPerPage={10} />);
+
+    const pageInfo = screen.getByTestId('page-info');
+    expect(pageInfo).toHaveTextContent('Page 1');
+    expect(pageInfo).toHaveTextContent('of 3');
+  });
+
+  it('displays current page information', () => {
+    renderWithRouter(<Pagination totalItems={30} itemsPerPage={10} />);
+
+    const pageInfo = screen.getByTestId('page-info');
+    expect(pageInfo).toHaveTextContent(/Page 1/);
+    expect(pageInfo).toHaveTextContent(/of 3/);
   });
 });

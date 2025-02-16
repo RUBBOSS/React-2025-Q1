@@ -1,38 +1,30 @@
-import { createSlice, isAnyOf } from '@reduxjs/toolkit';
-import { pokemonApi } from '../api/pokemonApi';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface ApiStatusState {
   loading: boolean;
+  error: string | null;
 }
 
-const initialState: ApiStatusState = { loading: false };
+const initialState: ApiStatusState = {
+  loading: false,
+  error: null,
+};
 
 const apiStatusSlice = createSlice({
   name: 'apiStatus',
   initialState,
-  reducers: {},
-  extraReducers: (builder) => {
-    builder.addMatcher(
-      isAnyOf(
-        pokemonApi.endpoints.getPokemonList.matchPending,
-        pokemonApi.endpoints.getPokemonByName.matchPending
-      ),
-      (state) => {
-        state.loading = true;
-      }
-    );
-    builder.addMatcher(
-      isAnyOf(
-        pokemonApi.endpoints.getPokemonList.matchFulfilled,
-        pokemonApi.endpoints.getPokemonList.matchRejected,
-        pokemonApi.endpoints.getPokemonByName.matchFulfilled,
-        pokemonApi.endpoints.getPokemonByName.matchRejected
-      ),
-      (state) => {
-        state.loading = false;
-      }
-    );
+  reducers: {
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.loading = action.payload;
+    },
+    setError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload;
+    },
+    clearError: (state) => {
+      state.error = null;
+    },
   },
 });
 
+export const { setLoading, setError, clearError } = apiStatusSlice.actions;
 export default apiStatusSlice.reducer;

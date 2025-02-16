@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useState, useMemo, useContext } from 'react';
 
 export type Theme = 'light' | 'dark';

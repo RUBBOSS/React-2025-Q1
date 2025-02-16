@@ -1,17 +1,22 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { RootState } from '../store/store';
+import { RootState } from '../store/mockPokemonSlice';
 
 const LoadingIndicator: React.FC = () => {
-  const loading = useSelector((state: RootState) => state.apiStatus.loading);
-  return loading ? (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 z-50">
-      <div className="p-6 rounded-lg shadow-xl">
-        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-        <p className="mt-4 text-lg font-semibold text-gray-700">Loading...</p>
-      </div>
+  const isLoading = useSelector(
+    (state: RootState) => state.pokemon?.loading ?? false
+  );
+
+  if (!isLoading) return null;
+
+  return (
+    <div
+      className="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      data-testid="loader"
+    >
+      <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
     </div>
-  ) : null;
+  );
 };
 
 export default LoadingIndicator;

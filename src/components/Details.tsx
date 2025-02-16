@@ -9,7 +9,6 @@ import {
 import useOnClickOutside from '../hooks/useOnClickOutside';
 import { fetchSpeciesDetails, fetchEvolutionChain } from '../api/pokeapi';
 
-// Move fetchPokemonDetails higher so it's available for fetchEvolutionData
 const fetchPokemonDetails = async (url: string): Promise<PokemonDetails> => {
   const response = await fetch(url);
   if (!response.ok) {
@@ -83,7 +82,6 @@ const Details: React.FC = () => {
     }
   }, [details, extractEvolutionChain]);
 
-  // Update handleClose to clone search parameters before deleting "details"
   const handleClose = useCallback(() => {
     const params = new URLSearchParams(searchParams);
     params.delete('details');
@@ -120,80 +118,84 @@ const Details: React.FC = () => {
     }
   };
 
-  if (loading)
-    return (
-      <div className="h-full flex items-center justify-center">
-        <Loader />
-      </div>
-    );
+  if (!pokemonId) {
+    return null;
+  }
 
-  if (error) {
+  if (loading) {
     return (
-      <div className="p-4 text-center">
-        <p
-          data-testid="error-message"
-          className="text-red-500 text-lg font-semibold"
-        >
-          {error}
-        </p>
+      <div
+        className="h-full flex items-center justify-center"
+        data-testid="details-loading"
+      >
+        <Loader />
       </div>
     );
   }
 
-  if (!details) return null;
+  if (error) {
+    return (
+      <div className="p-4 text-center" data-testid="error-message">
+        <p className="text-red-500 text-lg font-semibold">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div
       ref={detailsRef}
-      className="h-full p-6 bg-white shadow-lg relative overflow-y-auto text-black rounded-2xl"
+      className="h-full p-6 bg-white shadow-lg relative overflow-y-auto text-black rounded-2xl pokemon-details"
+      data-testid="details-view"
     >
-      <button
-        onClick={handleClose}
-        className="absolute top-4 right-4 p-2 rounded-full bg-gray-200 hover:bg-gray-300"
-      >
-        ✕
-      </button>
+      <button onClick={handleClose}>✕</button>
 
       <div className="flex items-center gap-6 mb-8">
-        <img
-          src={details.sprites.front_default}
-          alt={details.name}
-          className="w-32 h-32 object-contain"
-        />
-        <div>
-          <h2 className="text-3xl font-bold capitalize mb-2">{details.name}</h2>
-          <div className="flex gap-2">
-            {details.types.map((type) => (
-              <span
-                key={type.type.name}
-                className="px-3 py-1 rounded-full text-white bg-blue-500 text-sm"
-              >
-                {type.type.name}
-              </span>
-            ))}
-          </div>
-        </div>
+        {details && (
+          <>
+            <img
+              src={details.sprites.front_default}
+              alt={details.name}
+              className="w-32 h-32 object-contain"
+            />
+            <div>
+              <h2 className="text-3xl font-bold capitalize mb-2">
+                {details.name}
+              </h2>
+              <div className="flex gap-2">
+                {details.types.map((type) => (
+                  <span
+                    key={type.type.name}
+                    className="px-3 py-1 rounded-full text-white bg-blue-500 text-sm"
+                  >
+                    {type.type.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       <section className="mb-8">
         <h3 className="text-xl font-bold mb-4">Base Stats</h3>
         <div className="grid grid-cols-2 gap-4">
-          {details.stats.map((stat) => (
-            <div key={stat.stat.name} className="flex flex-col">
-              <span className="text-sm text-gray-600 capitalize">
-                {stat.stat.name.replace('-', ' ')}
-              </span>
-              <div className="flex items-center gap-2">
-                <div className="flex-grow h-2 bg-gray-200 rounded">
-                  <div
-                    className="h-full bg-blue-500 rounded"
-                    style={{ width: `${(stat.base_stat / 255) * 100}%` }}
-                  ></div>
+          {details &&
+            details.stats.map((stat) => (
+              <div key={stat.stat.name} className="flex flex-col">
+                <span className="text-sm text-gray-600 capitalize">
+                  {stat.stat.name.replace('-', ' ')}
+                </span>
+                <div className="flex items-center gap-2">
+                  <div className="flex-grow h-2 bg-gray-200 rounded">
+                    <div
+                      className="h-full bg-blue-500 rounded"
+                      style={{ width: `${(stat.base_stat / 255) * 100}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-sm font-medium">{stat.base_stat}</span>
                 </div>
-                <span className="text-sm font-medium">{stat.base_stat}</span>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </section>
 
@@ -234,14 +236,18 @@ const Details: React.FC = () => {
         <h3 className="text-xl font-bold mb-4">Characteristics</h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="font-medium">Height: {details.height / 10}m</p>
+            <p className="font-medium">
+              Height: {details?.height ? details.height / 10 : 'N/A'}m
+            </p>
           </div>
           <div>
-            <p className="font-medium">Weight: {details.weight / 10}kg</p>
+            <p className="font-medium">
+              Weight: {details?.weight ? details.weight / 10 : 'N/A'}kg
+            </p>
           </div>
           <div>
             <span className="text-gray-600">Base Experience</span>
-            <p className="font-medium">{details.base_experience}</p>
+            <p className="font-medium">{details?.base_experience ?? 'N/A'}</p>
           </div>
         </div>
       </section>
@@ -249,7 +255,7 @@ const Details: React.FC = () => {
       <section className="mb-8">
         <h3 className="text-xl font-bold mb-4">Abilities</h3>
         <div className="grid gap-2">
-          {(details.abilities || []).map((ability) => (
+          {(details?.abilities || []).map((ability) => (
             <div
               key={ability.ability.name}
               className="p-2 bg-gray-50 rounded flex items-center justify-between"
@@ -268,7 +274,7 @@ const Details: React.FC = () => {
       <section className="mb-8">
         <h3 className="text-xl font-bold mb-4">Signature Moves</h3>
         <div className="grid gap-2">
-          {(details.moves || []).slice(0, 5).map((move) => (
+          {(details?.moves || []).slice(0, 5).map((move) => (
             <div key={move.move.name} className="p-2 bg-gray-50 rounded">
               <span className="capitalize">
                 {move.move.name.replace('-', ' ')}

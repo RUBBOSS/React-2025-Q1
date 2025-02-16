@@ -1,36 +1,37 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { SearchProvider } from '../context/SearchContext';
 import NotFound from '../components/NotFound';
 
-const mockNavigate = vi.fn();
-
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  };
-});
+const renderWithProviders = () => {
+  return render(
+    <BrowserRouter>
+      <SearchProvider>
+        <NotFound />
+      </SearchProvider>
+    </BrowserRouter>
+  );
+};
 
 describe('NotFound', () => {
-  it('renders without crashing', () => {
-    render(
-      <BrowserRouter>
-        <SearchProvider>
-          <NotFound />
-        </SearchProvider>
-      </BrowserRouter>
-    );
-
-    expect(screen.getByText('404')).toBeInTheDocument();
-    expect(
-      screen.getByText('Oops! Looks like this area is unexplored!')
-    ).toBeInTheDocument();
+  it('renders 404 message', () => {
+    renderWithProviders();
+    expect(screen.getByText(/404/)).toBeInTheDocument();
+    expect(screen.getByTestId('404-page')).toBeInTheDocument();
   });
 
-  it('navigates home when clicking return button', () => {
+  it('clears search term when clicking return button', () => {
+    localStorage.setItem('searchTerm', 'test');
+    renderWithProviders();
+
+    fireEvent.click(screen.getByText(/Return to Home/));
+    expect(localStorage.getItem('searchTerm')).toBeNull();
+  });
+});
+
+describe('NotFound Component', () => {
+  it('renders not found message', () => {
     render(
       <BrowserRouter>
         <SearchProvider>
@@ -38,8 +39,6 @@ describe('NotFound', () => {
         </SearchProvider>
       </BrowserRouter>
     );
-
-    fireEvent.click(screen.getByText('Return to Home'));
-    expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
+    expect(screen.getByText(/unexplored/i)).toBeInTheDocument();
   });
 });

@@ -7,9 +7,10 @@ import { addItem, removeItem } from '../features/selectedItemsSlice';
 interface CardProps {
   name: string;
   url: string;
+  description?: string;
 }
 
-const Card: React.FC<CardProps> = ({ name, url }) => {
+const Card: React.FC<CardProps> = ({ name, url, description }) => {
   const [imageError, setImageError] = useState(false);
   const [pokeId, setPokeId] = useState('');
   const navigate = useNavigate();
@@ -22,11 +23,9 @@ const Card: React.FC<CardProps> = ({ name, url }) => {
   useEffect(() => {
     const segments = url.split('/').filter(Boolean);
     const lastSegment = segments[segments.length - 1];
-    // If last segment is a number, use it directly
     if (!isNaN(Number(lastSegment))) {
       setPokeId(lastSegment);
     } else {
-      // Otherwise, fetch details to get the numeric id
       fetch(url)
         .then((res) => res.json())
         .then((data) => setPokeId(String(data.id)))
@@ -46,7 +45,6 @@ const Card: React.FC<CardProps> = ({ name, url }) => {
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
-      // Include a description (this can be a default or fetched value)
       dispatch(addItem({ name, url, description: `Pokémon ${name}` }));
     } else {
       dispatch(removeItem(name));
@@ -73,12 +71,15 @@ const Card: React.FC<CardProps> = ({ name, url }) => {
           No image
         </div>
       )}
+      {description && (
+        <p className="mt-2 text-gray-600 text-center">{description}</p>
+      )}
       <div className="mt-4">
         <input
           type="checkbox"
           checked={isSelected}
           onChange={handleCheckboxChange}
-          onClick={(e) => e.stopPropagation()} // Prevent triggering card onClick
+          onClick={(e) => e.stopPropagation()}
           className="form-checkbox"
         />
       </div>
