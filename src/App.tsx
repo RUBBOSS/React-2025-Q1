@@ -7,6 +7,7 @@ import { ClickOutsideProvider } from './context/ClickOutsideContext';
 import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
 import NotFound from './components/NotFound';
+import './styles/pokemon-types.css';
 
 const App = () => {
   return (

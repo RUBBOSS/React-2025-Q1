@@ -54,8 +54,8 @@ const Card: React.FC<CardProps> = ({ name, url, description }) => {
   return (
     <article
       onClick={handleClick}
-      className="bg-white text-gray-900 rounded-xl shadow-lg p-6
-                 transition duration-500 transform hover:scale-105
+      className="pokemon-card bg-white text-gray-900 rounded-xl shadow-lg p-6
+                 hover:shadow-xl transition-shadow duration-200
                  flex flex-col items-center cursor-pointer"
     >
       <h3 className="text-xl font-bold capitalize mb-4">{name}</h3>
@@ -64,7 +64,7 @@ const Card: React.FC<CardProps> = ({ name, url, description }) => {
           src={imageUrl}
           alt={name}
           onError={() => setImageError(true)}
-          className="w-32 h-32 object-contain hover:scale-110 transition-transform duration-300"
+          className="w-32 h-32 object-contain"
         />
       ) : (
         <div className="w-32 h-32 bg-gray-200 flex items-center justify-center text-gray-500">
