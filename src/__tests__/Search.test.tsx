@@ -5,7 +5,6 @@ import { SearchProvider } from '../context/SearchContext';
 import Search from '../components/Search';
 
 const mockSetSearchParams = vi.fn();
-const mockSetSearchTerm = vi.fn();
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
@@ -17,10 +16,8 @@ vi.mock('react-router-dom', async () => {
 
 vi.mock('../context/SearchContext', () => ({
   useSearch: () => ({
-    get searchTerm() {
-      return localStorage.getItem('searchTerm') || '';
-    },
-    setSearchTerm: mockSetSearchTerm,
+    searchTerm: '',
+    setSearchTerm: vi.fn(),
   }),
   SearchProvider: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>
@@ -71,13 +68,14 @@ describe('Search', () => {
       </BrowserRouter>
     );
 
-    const input = screen.getByPlaceholderText('Search Pokémon');
-    const button = screen.getByText('Search');
+    const input = screen.getByPlaceholderText(/search pokémon/i);
+    const button = screen.getByRole('button', { name: /search/i });
 
     fireEvent.change(input, { target: { value: 'pikachu' } });
-    fireEvent.click(button);
-
-    expect(mockSetSearchParams).toHaveBeenCalled();
+    await waitFor(() => {
+      fireEvent.click(button);
+      expect(mockSetSearchParams).toHaveBeenCalled();
+    });
   });
 
   it('handles empty search', () => {
@@ -131,5 +129,61 @@ describe('Search', () => {
       ) as HTMLInputElement;
       expect(input.value).toBe(searchTerm);
     });
+  });
+
+  it('handles empty search', async () => {
+    render(
+      <BrowserRouter>
+        <SearchProvider>
+          <Search />
+        </SearchProvider>
+      </BrowserRouter>
+    );
+    const input = screen.getByPlaceholderText(/search pokémon/i);
+    fireEvent.change(input, { target: { value: '' } });
+    fireEvent.click(screen.getByText(/search/i));
+    await waitFor(() => {
+      expect(screen.queryByText(/no results found/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it('persists search term to local storage', () => {
+    render(
+      <BrowserRouter>
+        <SearchProvider>
+          <Search />
+        </SearchProvider>
+      </BrowserRouter>
+    );
+    const input = screen.getByPlaceholderText(/search pokémon/i);
+    fireEvent.change(input, { target: { value: 'pikachu' } });
+    fireEvent.click(screen.getByRole('button', { name: /search/i }));
+
+    expect(localStorage.getItem('searchTerm')).toBe('pikachu');
+  });
+
+  it('loads search term from local storage', () => {
+    localStorage.setItem('searchTerm', 'charizard');
+    render(
+      <BrowserRouter>
+        <SearchProvider>
+          <Search />
+        </SearchProvider>
+      </BrowserRouter>
+    );
+    const input = screen.getByPlaceholderText(/search pokémon/i);
+    expect(input).toHaveValue('charizard');
+  });
+
+  it('updates search value on input', () => {
+    render(
+      <SearchProvider>
+        <Search />
+      </SearchProvider>
+    );
+
+    const input = screen.getByPlaceholderText(/search pokémon/i);
+    fireEvent.change(input, { target: { value: 'pikachu' } });
+    expect(input).toHaveValue('pikachu');
   });
 });

@@ -1,0 +1,19 @@
+.light {
+  --background-color: #ffffff;
+  --text-color: #000000;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.dark {
+  --background-color: #1a1a1a;
+  --text-color: #f0f0f0;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+body {
+  transition:
+    background-color 0.3s,
+    color 0.3s;
+}
