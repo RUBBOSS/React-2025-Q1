@@ -1,0 +1,20 @@
+:root {
+  --pokemon-type-normal: #a8a878;
+  --pokemon-type-fire: #f08030;
+  --pokemon-type-water: #6890f0;
+  --pokemon-type-electric: #f8d030;
+  --pokemon-type-grass: #78c850;
+  --pokemon-type-ice: #98d8d8;
+  --pokemon-type-fighting: #c03028;
+  --pokemon-type-poison: #a040a0;
+  --pokemon-type-ground: #e0c068;
+  --pokemon-type-flying: #a890f0;
+  --pokemon-type-psychic: #f85888;
+  --pokemon-type-bug: #a8b820;
+  --pokemon-type-rock: #b8a038;
+  --pokemon-type-ghost: #705898;
+  --pokemon-type-dragon: #7038f8;
+  --pokemon-type-dark: #705848;
+  --pokemon-type-steel: #b8b8d0;
+  --pokemon-type-fairy: #ee99ac;
+}
