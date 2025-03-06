@@ -22,8 +22,9 @@ const SelectionFlyout: React.FC = () => {
     setIsDownloading(true);
     
     try {
-      const headers = ["ID", "Name", "Types", "Height", "Weight", "Image URL", "Details URL"];
-      let csvContent = headers.join(",") + "\n";
+      const BOM = '\uFEFF';
+      const headers = ["ID", "Name", "Types", "Height (m)", "Weight (kg)", "Image URL", "Details URL"];
+      let csvContent = headers.join(",") + "\r\n";
       
       selectedIds.forEach(id => {
         const pokemon = selectedItems[id];
@@ -31,17 +32,17 @@ const SelectionFlyout: React.FC = () => {
           const row = [
             pokemon.id,
             `"${pokemon.name}"`,
-            `"${pokemon.types?.map(t => t.type.name).join(', ') || ''}"`,
-            pokemon.height,
-            pokemon.weight,
+            `"${pokemon.types?.map(t => t.type.name).join('; ') || ''}"`,
+            (pokemon.height / 10).toFixed(2),
+            (pokemon.weight / 10).toFixed(2),
             `"${pokemon.officialArtwork || pokemon.image || ''}"`,
             `"https://pokeapi.co/api/v2/pokemon/${pokemon.id}/"`
           ];
-          csvContent += row.join(",") + "\n";
+          csvContent += row.join(",") + "\r\n";
         }
       });
       
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       
       if (downloadLinkRef.current) {

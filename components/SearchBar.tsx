@@ -1,77 +1,75 @@
-import React, { useState, useEffect } from 'react';
-
+import React, { useState, useEffect, useRef } from 'react';
 interface SearchBarProps {
-  onSearch: (term: string) => void;
+  onSearch: (searchTerm: string) => void;
   initialValue?: string;
 }
-
 const SearchBar: React.FC<SearchBarProps> = ({ onSearch, initialValue = '' }) => {
   const [searchTerm, setSearchTerm] = useState(initialValue);
-
-  // Update search term when initialValue changes
-  useEffect(() => {
-    setSearchTerm(initialValue);
-  }, [initialValue]);
-
-  // Handle input change
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
+  const [isSearching, setIsSearching] = useState(false);
+  const activeSearchRef = useRef<string | null>(null);
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSearching(true);
+    const currentSearchTerm = searchTerm.trim().toLowerCase();
+    activeSearchRef.current = currentSearchTerm;
+    setTimeout(() => {
+      if (activeSearchRef.current === currentSearchTerm) {
+        onSearch(currentSearchTerm);
+        setIsSearching(false);
+      }
+    }, 300);
   };
-
-  // Handle form submission
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    onSearch(searchTerm.trim().toLowerCase());
-  };
-
-  // Handle reset button click
   const handleReset = () => {
     setSearchTerm('');
-    onSearch('');
+    setIsSearching(true);
+    activeSearchRef.current = '';
+    setTimeout(() => {
+      if (activeSearchRef.current === '') {
+        onSearch('');
+        setIsSearching(false);
+      }
+    }, 300);
   };
-
+  useEffect(() => {
+    return () => {
+      activeSearchRef.current = null;
+    };
+  }, []);
   return (
-    <form onSubmit={handleSubmit} className="relative">
-      <div className="flex w-full items-center">
-        <div className="relative flex-grow">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={handleChange}
-            className="w-full rounded-l-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-blue-500 dark:focus:ring-blue-800"
-            placeholder="Search Pokemon by name or ID..."
-            aria-label="Search Pokemon"
-          />
-          {searchTerm && (
-            <button
-              type="button"
-              onClick={handleReset}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700"
-            >
-              <svg
-                className="h-5 w-5"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
-          )}
-        </div>
+    <form onSubmit={handleSubmit} className="w-full">
+      <div className="relative">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search Pokemon by name or ID..."
+          className="w-full p-3 pl-4 pr-10 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white shadow-md"
+          disabled={isSearching}
+        />
+        {searchTerm && (
+          <button
+            type="button"
+            onClick={handleReset}
+            className="absolute right-12 top-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+            aria-label="Clear search"
+            disabled={isSearching}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
         <button
           type="submit"
-          className="rounded-r-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 dark:bg-blue-700 dark:hover:bg-blue-800"
+          className="absolute right-3 top-3 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+          disabled={isSearching}
         >
-          Search
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
         </button>
       </div>
     </form>
   );
 };
-
 export default SearchBar;

@@ -1,6 +1,4 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-
-// Define Pokemon interfaces
 export interface Pokemon {
   id: number;
   name: string;
@@ -44,12 +42,10 @@ export interface Pokemon {
       url: string;
     };
   }>;
-  // Extended props
   description?: string;
   officialArtwork?: string;
   image?: string;
 }
-
 export interface PokemonListResponse {
   count: number;
   next: string | null;
@@ -59,7 +55,6 @@ export interface PokemonListResponse {
     url: string;
   }>;
 }
-
 export interface PokemonSpecies {
   id: number;
   name: string;
@@ -87,22 +82,18 @@ export interface PokemonSpecies {
   is_legendary: boolean;
   is_mythical: boolean;
 }
-
-// Create the API service using RTK Query
 export const pokemonApi = createApi({
   reducerPath: 'pokemonApi',
   baseQuery: fetchBaseQuery({ 
-    baseUrl: 'https://pokeapi.co/api/v2/' 
+    baseUrl: 'https://pokeapi.co/api/v2/'
   }),
   endpoints: (builder) => ({
     getPokemonList: builder.query<PokemonListResponse, { limit?: number; offset?: number }>({
       query: ({ limit = 20, offset = 0 }) => `pokemon?limit=${limit}&offset=${offset}`,
     }),
-    
     getPokemonByName: builder.query<Pokemon, string | number>({
       query: (nameOrId) => `pokemon/${nameOrId}`,
       transformResponse: (response: Pokemon) => {
-        // Add custom fields
         return {
           ...response,
           image: response.sprites?.front_default,
@@ -110,13 +101,11 @@ export const pokemonApi = createApi({
         };
       },
     }),
-    
     getPokemonSpecies: builder.query<PokemonSpecies, number | string>({
       query: (idOrName) => `pokemon-species/${idOrName}`,
     }),
   }),
 });
-
 export const {
   useGetPokemonListQuery,
   useGetPokemonByNameQuery,

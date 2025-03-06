@@ -1,7 +1,5 @@
 import { get } from './axiosConfig';
-
 const POKE_API_URL = 'https://pokeapi.co/api/v2';
-
 export interface Pokemon {
   id: number;
   name: string;
@@ -24,7 +22,6 @@ export interface Pokemon {
     url: string;
   };
 }
-
 export interface PokemonListResponse {
   count: number;
   next: string | null;
@@ -34,7 +31,6 @@ export interface PokemonListResponse {
     url: string;
   }>;
 }
-
 export const getPokemonList = async (
   limit = 20,
   offset = 0
@@ -48,7 +44,6 @@ export const getPokemonList = async (
     throw error;
   }
 };
-
 export const getPokemonDetails = async (
   nameOrId: string | number
 ): Promise<Pokemon> => {
@@ -59,7 +54,6 @@ export const getPokemonDetails = async (
     throw error;
   }
 };
-
 interface DamageRelations {
   double_damage_from: Array<{ name: string; url: string }>;
   double_damage_to: Array<{ name: string; url: string }>;
@@ -68,7 +62,6 @@ interface DamageRelations {
   no_damage_from: Array<{ name: string; url: string }>;
   no_damage_to: Array<{ name: string; url: string }>;
 }
-
 interface PokemonTypeResponse {
   damage_relations: DamageRelations;
   pokemon: Array<{
@@ -79,7 +72,6 @@ interface PokemonTypeResponse {
     slot: number;
   }>;
 }
-
 export const getPokemonByType = async (type: string): Promise<PokemonTypeResponse> => {
   try {
     return await get<PokemonTypeResponse>(`${POKE_API_URL}/type/${type}`);

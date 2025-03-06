@@ -1,17 +1,14 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
 interface UIState {
   isFlyoutOpen: boolean;
   isLoading: boolean;
   error: string | null;
 }
-
 const initialState: UIState = {
   isFlyoutOpen: false,
   isLoading: false,
   error: null,
 };
-
 export const uiSlice = createSlice({
   name: 'ui',
   initialState,
@@ -30,7 +27,6 @@ export const uiSlice = createSlice({
     },
   },
 });
-
 export const { openFlyout, closeFlyout, setLoading, setError } =
   uiSlice.actions;
 export default uiSlice.reducer;

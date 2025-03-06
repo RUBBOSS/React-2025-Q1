@@ -13,9 +13,14 @@ export default [
       ecmaVersion: 'latest',
       sourceType: 'module',
       globals: {
-        ...globals.browser,
-        ...globals.es2021,
-        ...globals.node
+        window: true,
+        document: true,
+        console: true,
+        module: true,
+        require: true,
+        process: true,
+        __dirname: true,
+        global: true
       },
       parser: tsParser,
       parserOptions: {
@@ -31,8 +36,8 @@ export default [
     },
     settings: {
       next: { 
-        rootDir: '.',  // Change from 'src' to '.'
-        pagesDir: ['pages'] // Update to point to correct pages directory
+        rootDir: '.',
+        pagesDir: ['pages']
       }
     },
     rules: {

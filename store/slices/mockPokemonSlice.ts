@@ -1,11 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
-
 export interface Pokemon {
   id: string;
   name: string;
   url: string;
 }
-
 export interface PokemonState {
   items: Pokemon[];
   selectedItems: string[];
@@ -15,11 +13,9 @@ export interface PokemonState {
   totalPages: number;
   searchTerm: string;
 }
-
 export interface RootState {
   pokemon: PokemonState;
 }
-
 const initialState: PokemonState = {
   items: [],
   selectedItems: [],
@@ -29,7 +25,6 @@ const initialState: PokemonState = {
   totalPages: 1,
   searchTerm: '',
 };
-
 const mockPokemonSlice = createSlice({
   name: 'pokemon',
   initialState,
@@ -54,7 +49,6 @@ const mockPokemonSlice = createSlice({
     },
   },
 });
-
 export const { setLoading, setError, setItems, toggleSelected } =
   mockPokemonSlice.actions;
 export default mockPokemonSlice.reducer;

@@ -2,11 +2,11 @@ import React from 'react';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import '../styles/globals.css';
+import '../styles/base.css';
 import { Provider } from 'react-redux';
 import { store } from '../redux/store';
 import { ThemeProvider } from '../context/ThemeContext';
 import ErrorBoundary from '../components/ErrorBoundary';
-
 const MyApp = ({ Component, pageProps }: AppProps): JSX.Element => {
   return (
     <React.StrictMode>
@@ -24,5 +24,4 @@ const MyApp = ({ Component, pageProps }: AppProps): JSX.Element => {
     </React.StrictMode>
   );
 };
-
 export default MyApp;

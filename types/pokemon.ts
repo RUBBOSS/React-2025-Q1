@@ -6,7 +6,6 @@ export interface Ability {
   is_hidden: boolean;
   slot: number;
 }
-
 export interface Type {
   type: {
     name: string;
@@ -14,7 +13,6 @@ export interface Type {
   };
   slot: number;
 }
-
 export interface Stat {
   base_stat: number;
   effort: number;
@@ -23,14 +21,12 @@ export interface Stat {
     url: string;
   };
 }
-
 export interface Move {
   move: {
     name: string;
     url: string;
   };
 }
-
 export interface GameIndex {
   game_index: number;
   version: {
@@ -38,13 +34,11 @@ export interface GameIndex {
     url: string;
   };
 }
-
 export interface HeldItem {
   item: {
     name: string;
   };
 }
-
 export interface PokemonDetails {
   id: number;
   name: string;
@@ -67,7 +61,6 @@ export interface PokemonDetails {
     url: string;
   };
 }
-
 export interface SpeciesDetails {
   flavor_text_entries: Array<{
     flavor_text: string;
@@ -85,11 +78,9 @@ export interface SpeciesDetails {
     url: string;
   };
 }
-
 export interface EvolutionChain {
   chain: EvolutionNode;
 }
-
 export interface EvolutionNode {
   species: {
     name: string;
@@ -97,7 +88,6 @@ export interface EvolutionNode {
   };
   evolves_to: EvolutionNode[];
 }
-
 export interface EvolutionDetail {
   min_level?: number;
   trigger: {
@@ -105,7 +95,6 @@ export interface EvolutionDetail {
     url: string;
   };
 }
-
 export interface ChainLink {
   is_baby: boolean;
   species: {
@@ -115,18 +104,15 @@ export interface ChainLink {
   evolution_details: EvolutionDetail[] | null;
   evolves_to: ChainLink[];
 }
-
 export interface EvolutionChainResponse {
   chain: ChainLink;
 }
-
 export interface SimplifiedEvolutionNode {
   name: string;
   level: number;
   min_level?: number;
   trigger?: string;
 }
-
 export interface Pokemon {
   id: number;
   name: string;
@@ -134,5 +120,5 @@ export interface Pokemon {
   height: number;
   weight: number;
   image: string;
-  officialArtwork: string | undefined;  // Changed from string | null
+  officialArtwork: string | undefined;  
 }

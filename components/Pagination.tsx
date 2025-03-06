@@ -1,73 +1,50 @@
 import { useRouter } from 'next/router';
-
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
 }
-
 const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) => {
   const router = useRouter();
-
-  // Generate array of page numbers to show
   const getPageNumbers = () => {
     const pages = [];
     const maxPagesToShow = 5;
-    
     if (totalPages <= maxPagesToShow) {
-      // Show all pages if total is less than max to show
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
     } else {
-      // Always include first page
       pages.push(1);
-      
-      // Calculate start and end of current window
       let start = Math.max(2, currentPage - 1);
       let end = Math.min(totalPages - 1, currentPage + 1);
-      
-      // Adjust window to show 3 pages
       if (currentPage <= 3) {
         end = 4;
       } else if (currentPage >= totalPages - 2) {
         start = totalPages - 3;
       }
-      
-      // Add ellipsis if needed before window
       if (start > 2) {
         pages.push('ellipsis1');
       }
-      
-      // Add pages in current window
       for (let i = start; i <= end; i++) {
         pages.push(i);
       }
-      
-      // Add ellipsis if needed after window
       if (end < totalPages - 1) {
         pages.push('ellipsis2');
       }
-      
-      // Always include last page
       pages.push(totalPages);
     }
-    
     return pages;
   };
-
   const handlePageClick = (page: number) => {
     onPageChange(page);
-    // Update URL with page query parameter
     router.push({
       pathname: router.pathname,
       query: { ...router.query, page }
     }, undefined, { shallow: true });
   };
-
   return (
     <div className="flex items-center justify-center space-x-1 pt-8">
-      {/* First page button */}
+      {}
       <button
         onClick={() => currentPage !== 1 && handlePageClick(1)}
         disabled={currentPage === 1}
@@ -92,8 +69,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) 
         </svg>
         <span className="hidden sm:inline">First</span>
       </button>
-
-      {/* Previous button */}
+      {}
       <button
         onClick={() => currentPage > 1 && handlePageClick(currentPage - 1)}
         disabled={currentPage === 1}
@@ -112,8 +88,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) 
           />
         </svg>
       </button>
-
-      {/* Page numbers */}
+      {}
       {getPageNumbers().map((page, index) => {
         if (page === 'ellipsis1' || page === 'ellipsis2') {
           return (
@@ -141,8 +116,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) 
           </button>
         );
       })}
-
-      {/* Next button */}
+      {}
       <button
         onClick={() => currentPage < totalPages && handlePageClick(currentPage + 1)}
         disabled={currentPage === totalPages}
@@ -161,8 +135,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) 
           />
         </svg>
       </button>
-
-      {/* Last page button */}
+      {}
       <button
         onClick={() => currentPage !== totalPages && handlePageClick(totalPages)}
         disabled={currentPage === totalPages}
@@ -190,5 +163,4 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) 
     </div>
   );
 };
-
 export default Pagination;

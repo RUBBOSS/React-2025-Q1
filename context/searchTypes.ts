@@ -1,5 +1,4 @@
 import { ReactNode } from 'react';
-
 export interface Pokemon {
   id: string;
   name: string;
@@ -14,7 +13,6 @@ export interface Pokemon {
     };
   };
 }
-
 export interface SearchContextProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
@@ -25,11 +23,9 @@ export interface SearchContextProps {
   error: string | null;
   setError: (error: string | null) => void;
 }
-
 export interface SearchProviderProps {
   children: ReactNode;
 }
-
 export interface SearchComponentProps {
   onSearch?: (searchTerm: string) => void;
 }

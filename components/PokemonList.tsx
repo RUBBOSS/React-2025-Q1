@@ -1,12 +1,10 @@
 import React from 'react';
 import PokemonCard from './PokemonCard';
 import { Pokemon } from '../types/pokemon';
-
 interface PokemonListProps {
   pokemonData: Pokemon[];
   onSelectPokemon: (id: number) => void;
 }
-
 const PokemonList: React.FC<PokemonListProps> = ({ pokemonData, onSelectPokemon }) => {
   if (pokemonData.length === 0) {
     return (
@@ -15,10 +13,7 @@ const PokemonList: React.FC<PokemonListProps> = ({ pokemonData, onSelectPokemon 
       </div>
     );
   }
-
-  // Take only the first 9 Pokemon from the data
   const displayedPokemon = pokemonData.slice(0, 9);
-
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
       {displayedPokemon.map(pokemon => (
@@ -37,5 +32,4 @@ const PokemonList: React.FC<PokemonListProps> = ({ pokemonData, onSelectPokemon 
     </div>
   );
 };
-
 export default PokemonList;

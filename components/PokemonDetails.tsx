@@ -127,7 +127,7 @@ const PokemonDetails = ({ pokemonId, onClose }: PokemonDetailsProps) => {
   }
 
   return (
-    <div className="h-full overflow-auto bg-white dark:bg-gray-800">
+    <div className="h-full overflow-auto bg-white dark:bg-gray-800 p-6">
       <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">
           Pokemon Details

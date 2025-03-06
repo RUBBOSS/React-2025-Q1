@@ -1,10 +1,8 @@
 import React from 'react';
-
 const ErrorButton: React.FC = () => {
   const handleClick = () => {
     throw new Error('This is a test error from the Error Button');
   };
-
   return (
     <button
       onClick={handleClick}
@@ -14,5 +12,4 @@ const ErrorButton: React.FC = () => {
     </button>
   );
 };
-
 export default ErrorButton;

@@ -1,10 +1,8 @@
 import React from 'react';
 import Image from 'next/image';
 import { useTheme } from '../context/ThemeContext';
-
 const ThemeToggle: React.FC = () => {
   const { theme, setTheme } = useTheme();
-
   return (
     <button
       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -38,5 +36,4 @@ const ThemeToggle: React.FC = () => {
     </button>
   );
 };
-
 export default ThemeToggle;

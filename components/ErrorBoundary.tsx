@@ -1,15 +1,12 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
 }
-
 interface State {
   hasError: boolean;
   error: Error | null;
 }
-
 class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
@@ -18,30 +15,23 @@ class ErrorBoundary extends Component<Props, State> {
       error: null,
     };
   }
-
   static getDerivedStateFromError(error: Error): State {
-    // Update state so the next render shows the fallback UI
     return {
       hasError: true,
       error,
     };
   }
-
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    // You can log the error to an error reporting service
     console.error('ErrorBoundary caught an error:', error, errorInfo);
   }
-
   resetErrorBoundary = (): void => {
     this.setState({
       hasError: false,
       error: null,
     });
   };
-
   render(): ReactNode {
     if (this.state.hasError) {
-      // You can render any custom fallback UI
       return (
         <div className="flex min-h-[50vh] w-full flex-col items-center justify-center rounded-lg bg-red-50 p-8 text-center">
           <h2 className="mb-4 text-2xl font-bold text-red-600">Something went wrong</h2>
@@ -57,9 +47,7 @@ class ErrorBoundary extends Component<Props, State> {
         </div>
       );
     }
-
     return this.props.children;
   }
 }
-
 export default ErrorBoundary;

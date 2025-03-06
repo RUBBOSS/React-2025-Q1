@@ -1,14 +1,11 @@
 import { useTheme } from '../context/ThemeContext';
-
 const ThemeSelector: React.FC = () => {
   const { theme, setTheme } = useTheme();
-
   return (
     <div className="flex items-center justify-center space-x-4">
-      {/* Theme label */}
+      {}
       <span className="text-sm font-medium">Theme:</span>
-      
-      {/* Radio button selection */}
+      {}
       <div className="flex rounded-md shadow-sm">
         <button
           onClick={() => setTheme('light')}
@@ -43,8 +40,7 @@ const ThemeSelector: React.FC = () => {
           </div>
         </button>
       </div>
-      
-      {/* Alternative toggle switch */}
+      {}
       <button
         onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
         className="ml-2 p-2 rounded-full bg-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -63,5 +59,4 @@ const ThemeSelector: React.FC = () => {
     </div>
   );
 };
-
 export default ThemeSelector;
