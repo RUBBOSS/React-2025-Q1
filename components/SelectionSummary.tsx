@@ -1,5 +1,5 @@
 import { useAppSelector, useAppDispatch } from '../redux/hooks';
-import { selectSelectedPokemonIds, clearSelection } from '../redux/slices/selectedPokemonSlice';
+import { selectSelectedPokemonIds, clearAllSelections } from '../redux/slices/selectedPokemonSlice';
 const SelectionSummary: React.FC = () => {
   const selectedIds = useAppSelector(selectSelectedPokemonIds);
   const dispatch = useAppDispatch();
@@ -11,7 +11,7 @@ const SelectionSummary: React.FC = () => {
         <span className="text-blue-700"> Pokemon selected</span>
       </div>
       <button
-        onClick={() => dispatch(clearSelection())}
+        onClick={() => dispatch(clearAllSelections())}
         className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
       >
         Clear Selection

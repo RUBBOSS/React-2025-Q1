@@ -6,10 +6,6 @@ const nextConfig = {
     esmExternals: true
   },
   images: {
-    domains: ['raw.githubusercontent.com'],
-  },
-
-  images: {
     remotePatterns: [
       {
         protocol: 'https',
@@ -29,10 +25,13 @@ const nextConfig = {
   webpack: (config, { dev, isServer }) => {
     if (dev && !isServer) {
       config.watchOptions = {
-        ignored: ['**/.git/**', '**/node_modules/**'],
-        aggregateTimeout: 200,
+        ignored: ['**/node_modules/**', '**/.git/**'],
+        aggregateTimeout: 300,
         poll: 1000,
+        followSymlinks: false,
       };
+      
+      config.optimization.runtimeChunk = 'single';
     }
     return config;
   },
