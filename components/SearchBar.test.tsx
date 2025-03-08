@@ -10,7 +10,9 @@ describe('SearchBar', () => {
   });
   it('renders with the correct placeholder text', () => {
     render(<SearchBar onSearch={vi.fn()} />);
-    expect(screen.getByPlaceholderText('Search Pokemon by name or ID...')).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText('Search Pokemon by name or ID...')
+    ).toBeInTheDocument();
   });
   it('renders with the initial value when provided', () => {
     render(<SearchBar onSearch={vi.fn()} initialValue="pikachu" />);

@@ -11,24 +11,28 @@ describe('ErrorButton', () => {
     const handleClick = vi.fn().mockImplementation(() => {
       throw new Error('This is a test error from the Error Button');
     });
-    vi.spyOn(React, 'createElement').mockImplementationOnce((type, props, ...children) => {
-      if (type === 'button') {
-        return {
-          type,
-          props: {
-            ...props,
-            onClick: handleClick
-          },
-          key: null,
-          ref: null,
-          $$typeof: Symbol.for('react.element'),
-          _owner: null
-        };
+    vi.spyOn(React, 'createElement').mockImplementationOnce(
+      (type, props, ...children) => {
+        if (type === 'button') {
+          return {
+            type,
+            props: {
+              ...props,
+              onClick: handleClick,
+            },
+            key: null,
+            ref: null,
+            $$typeof: Symbol.for('react.element'),
+            _owner: null,
+          };
+        }
+        return React.createElement(type, props, ...children);
       }
-      return React.createElement(type, props, ...children);
-    });
+    );
     render(<ErrorButton />);
     expect(handleClick).not.toHaveBeenCalled();
-    expect(() => handleClick()).toThrow('This is a test error from the Error Button');
+    expect(() => handleClick()).toThrow(
+      'This is a test error from the Error Button'
+    );
   });
 });

@@ -10,9 +10,11 @@ const ThemeToggle: React.FC = () => {
       aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
     >
       <div className="relative h-10 w-10">
-        <div className={`absolute transition-all duration-500 ${
-          theme === 'dark' ? 'rotate-0 opacity-100' : 'rotate-90 opacity-0'
-        }`}>
+        <div
+          className={`absolute transition-all duration-500 ${
+            theme === 'dark' ? 'rotate-0 opacity-100' : 'rotate-90 opacity-0'
+          }`}
+        >
           <Image
             src="/sun.png"
             alt="Light mode"
@@ -21,9 +23,11 @@ const ThemeToggle: React.FC = () => {
             className="transform transition-all"
           />
         </div>
-        <div className={`absolute transition-all duration-500 ${
-          theme === 'dark' ? '-rotate-90 opacity-0' : 'rotate-0 opacity-100'
-        }`}>
+        <div
+          className={`absolute transition-all duration-500 ${
+            theme === 'dark' ? '-rotate-90 opacity-0' : 'rotate-0 opacity-100'
+          }`}
+        >
           <Image
             src="/moon.png"
             alt="Dark mode"

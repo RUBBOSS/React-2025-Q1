@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import ThemeToggle from './ThemeToggle';
 import { useTheme } from '../context/ThemeContext';
 vi.mock('../context/ThemeContext', () => ({
-  useTheme: vi.fn()
+  useTheme: vi.fn(),
 }));
 describe('ThemeToggle', () => {
   it('renders light mode UI when theme is dark', () => {

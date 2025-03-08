@@ -116,9 +116,22 @@ export interface SimplifiedEvolutionNode {
 export interface Pokemon {
   id: number;
   name: string;
-  types: Array<{ type: { name: string } }>;
   height: number;
   weight: number;
-  image: string;
-  officialArtwork: string | undefined;  
+  types: Array<{ type: { name: string } }>;
+  stats: Stat[];
+  abilities: Ability[];
+  sprites: {
+    front_default?: string;  // Make optional
+    other: {
+      'official-artwork': {
+        front_default?: string;  // Make optional
+      };
+    };
+  };
+  species: {
+    name: string;
+    url: string;
+  };
+  officialArtwork?: string;  // Make optional
 }

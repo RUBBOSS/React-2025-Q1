@@ -1,12 +1,16 @@
+'use client';
+
 import { useMemo } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter, useSearchParams } from 'next/navigation';
+
 type PaginationItem = number | 'dots';
+
 interface UsePaginationProps {
-  totalItems: number;
-  pageSize: number;
+  totalPages: number;
+  currentPage: number;
   siblingCount?: number;
-  currentPage?: number;
 }
+
 interface UsePaginationReturn {
   currentPage: number;
   totalPages: number;
@@ -17,40 +21,38 @@ interface UsePaginationReturn {
   goToNextPage: () => void;
   goToPreviousPage: () => void;
 }
+
 export const usePagination = ({
-  totalItems,
-  pageSize,
+  totalPages,
+  currentPage,
   siblingCount = 1,
-  currentPage: propCurrentPage,
 }: UsePaginationProps): UsePaginationReturn => {
   const router = useRouter();
-  const currentPage = propCurrentPage || Number(router.query.page) || 1;
-  const totalPages = useMemo(
-    () => Math.max(1, Math.ceil(totalItems / pageSize)),
-    [totalItems, pageSize]
-  );
+  const searchParams = useSearchParams();
+
   const pageItems = useMemo(() => {
-    const totalPageNumbers = siblingCount * 2 + 3; 
-    if (totalPageNumbers >= totalPages) {
+    if (totalPages <= 5) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
-    const leftSiblingIndex = Math.max(currentPage - siblingCount, 1);
-    const rightSiblingIndex = Math.min(currentPage + siblingCount, totalPages);
-    const shouldShowLeftDots = leftSiblingIndex > 2;
-    const shouldShowRightDots = rightSiblingIndex < totalPages - 1;
+
+    const firstPage = 1;
+    const lastPage = totalPages;
+    const leftSiblingIndex = Math.max(currentPage - siblingCount, firstPage);
+    const rightSiblingIndex = Math.min(currentPage + siblingCount, lastPage);
+
+    const shouldShowLeftDots = leftSiblingIndex > firstPage + 1;
+    const shouldShowRightDots = rightSiblingIndex < lastPage - 1;
+
     if (!shouldShowLeftDots && shouldShowRightDots) {
-      const leftItemCount = 3 + 2 * siblingCount;
-      const leftRange = Array.from({ length: leftItemCount }, (_, i) => i + 1);
-      return [...leftRange, 'dots', totalPages];
+      const leftRange = Array.from({ length: 4 }, (_, i) => i + 1);
+      return [...leftRange, 'dots', lastPage];
     }
+
     if (shouldShowLeftDots && !shouldShowRightDots) {
-      const rightItemCount = 3 + 2 * siblingCount;
-      const rightRange = Array.from(
-        { length: rightItemCount },
-        (_, i) => totalPages - rightItemCount + i + 1
-      );
-      return [1, 'dots', ...rightRange];
+      const rightRange = Array.from({ length: 4 }, (_, i) => lastPage - 3 + i);
+      return [firstPage, 'dots', ...rightRange];
     }
+
     if (shouldShowLeftDots && shouldShowRightDots) {
       const middleRange = Array.from(
         { length: rightSiblingIndex - leftSiblingIndex + 1 },
@@ -60,30 +62,30 @@ export const usePagination = ({
     }
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }, [totalPages, currentPage, siblingCount]);
+
   const isFirstPage = currentPage === 1;
   const isLastPage = currentPage === totalPages;
+
   const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages) {
-      router.push(
-        {
-          pathname: router.pathname,
-          query: { ...router.query, page: page.toString() },
-        },
-        undefined,
-        { shallow: true }
-      );
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('page', page.toString());
+      router.push(`/?${params.toString()}`);
     }
   };
+
   const goToNextPage = () => {
     if (!isLastPage) {
       goToPage(currentPage + 1);
     }
   };
+
   const goToPreviousPage = () => {
     if (!isFirstPage) {
       goToPage(currentPage - 1);
     }
   };
+
   return {
     currentPage,
     totalPages,

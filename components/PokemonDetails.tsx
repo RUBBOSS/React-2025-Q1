@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import LoadingSpinner from './LoadingSpinner';
@@ -41,18 +43,21 @@ const PokemonDetails = ({ pokemonId, onClose }: PokemonDetailsProps) => {
       setLoading(true);
       setError('');
       try {
-        // Fetch main Pokemon data
-        const response = await fetch(
-          `https://pokeapi.co/api/v2/pokemon/${pokemonId}`
-        );
+        // Fetch main Pokemon data through our API route
+        const response = await fetch(`/api/pokemon/${pokemonId}`);
+
         if (!response.ok) {
           throw new Error('Failed to fetch Pokemon details');
         }
+
         const data: PokemonDetail = await response.json();
         setPokemon(data);
 
         // Fetch species data for description
-        const speciesResponse = await fetch(data.species.url);
+        const speciesResponse = await fetch(
+          `/api/pokemon/species/${pokemonId}`
+        );
+
         if (speciesResponse.ok) {
           const speciesData = await speciesResponse.json();
           // Find an English flavor text entry
@@ -127,10 +132,10 @@ const PokemonDetails = ({ pokemonId, onClose }: PokemonDetailsProps) => {
   }
 
   return (
-    <div className="h-full overflow-auto bg-white dark:bg-gray-800 p-6">
-      <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-          Pokemon Details
+    <div className="h-full overflow-y-auto md:h-screen">
+      <div className="sticky top-0 z-10 flex items-center justify-between bg-white p-4 shadow-sm dark:bg-gray-800">
+        <h2 className="text-xl font-bold capitalize text-gray-900 dark:text-white">
+          {pokemon.name}
         </h2>
         <button
           onClick={onClose}
@@ -153,25 +158,29 @@ const PokemonDetails = ({ pokemonId, onClose }: PokemonDetailsProps) => {
         </button>
       </div>
 
-      <div className="p-4">
-        <Image
-          src={
-            pokemon.sprites.other['official-artwork'].front_default ||
-            pokemon.sprites.front_default
-          }
-          alt={pokemon.name}
-          className="object-contain"
-          width={192}
-          height={192}
-        />
+      <div className="overflow-y-visible p-4 pb-20 md:p-4 md:pb-4">
+        <div className="mb-4 flex justify-center">
+          <div className="relative h-48 w-48">
+            <Image
+              src={
+                pokemon.sprites.other['official-artwork'].front_default ||
+                pokemon.sprites.front_default
+              }
+              alt={pokemon.name}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              style={{ objectFit: 'contain' }}
+              priority
+              className="animate-fadeIn"
+            />
+          </div>
+        </div>
 
-        <div className="mt-2 flex gap-2">
+        <div className="mb-6 flex justify-center gap-2">
           {pokemon.types.map(type => (
             <span
               key={type.type.name}
-              className={`rounded-full px-3 py-1 text-xs font-medium text-white bg-${
-                typeColors[type.type.name] || 'gray-500'
-              }`}
+              className="rounded-full px-3 py-1 text-xs font-medium text-white"
               style={{
                 backgroundColor: typeColors[type.type.name] || '#6b7280',
               }}
@@ -180,88 +189,114 @@ const PokemonDetails = ({ pokemonId, onClose }: PokemonDetailsProps) => {
             </span>
           ))}
         </div>
-      </div>
 
-      {description && (
+        {description && (
+          <div className="mb-6 rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
+            <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
+              Description
+            </h3>
+            <p className="text-gray-700 dark:text-gray-300">{description}</p>
+          </div>
+        )}
+
         <div className="mb-6">
           <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-            Description
+            Details
           </h3>
-          <p className="text-gray-700 dark:text-gray-300">{description}</p>
-        </div>
-      )}
-
-      <div className="mb-6">
-        <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-          Details
-        </h3>
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <div className="rounded-md bg-gray-100 p-2 dark:bg-gray-700">
-            <span className="font-medium text-gray-700 dark:text-gray-300">
-              Height:
-            </span>{' '}
-            <span className="text-gray-900 dark:text-gray-100">
-              {pokemon.height / 10}m
-            </span>
-          </div>
-          <div className="rounded-md bg-gray-100 p-2 dark:bg-gray-700">
-            <span className="font-medium text-gray-700 dark:text-gray-300">
-              Weight:
-            </span>{' '}
-            <span className="text-gray-900 dark:text-gray-100">
-              {pokemon.weight / 10}kg
-            </span>
-          </div>
-          <div className="col-span-2 rounded-md bg-gray-100 p-2 dark:bg-gray-700">
-            <span className="font-medium text-gray-700 dark:text-gray-300">
-              Pokemon ID:
-            </span>{' '}
-            <span className="text-gray-900 dark:text-gray-100">
-              #{pokemon.id}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className="mb-6">
-        <h3 className="mb-2 text-lg font-semibold">Abilities</h3>
-        <ul className="list-inside list-disc">
-          {pokemon.abilities.map(ability => (
-            <li key={ability.ability.name} className="capitalize">
-              {ability.ability.name.replace('-', ' ')}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div>
-        <h3 className="mb-2 text-lg font-semibold">Base Stats</h3>
-        <div className="space-y-2">
-          {pokemon.stats.map(stat => (
-            <div key={stat.stat.name} className="w-full">
-              <div className="flex justify-between">
-                <span className="text-sm font-medium capitalize">
-                  {stat.stat.name.replace('-', ' ')}
-                </span>
-                <span className="text-sm font-semibold">{stat.base_stat}</span>
-              </div>
-              <div className="mt-1 h-2 w-full rounded-full bg-gray-200">
-                <div
-                  className="h-2 rounded-full bg-blue-600"
-                  style={{
-                    width: `${Math.min(100, (stat.base_stat / 255) * 100)}%`,
-                  }}
-                ></div>
-              </div>
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="rounded-md bg-gray-100 p-2 dark:bg-gray-700">
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                Height:
+              </span>{' '}
+              <span className="text-gray-900 dark:text-gray-100">
+                {pokemon.height / 10}m
+              </span>
             </div>
-          ))}
+            <div className="rounded-md bg-gray-100 p-2 dark:bg-gray-700">
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                Weight:
+              </span>{' '}
+              <span className="text-gray-900 dark:text-gray-100">
+                {pokemon.weight / 10}kg
+              </span>
+            </div>
+            <div className="col-span-2 rounded-md bg-gray-100 p-2 dark:bg-gray-700">
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                Pokemon ID:
+              </span>{' '}
+              <span className="text-gray-900 dark:text-gray-100">
+                #{pokemon.id.toString().padStart(3, '0')}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <h3 className="mb-2 text-lg font-semibold">Base Stats</h3>
+          <div className="space-y-2">
+            {pokemon.stats.map(stat => (
+              <div key={stat.stat.name} className="w-full">
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium capitalize">
+                    {formatStatName(stat.stat.name)}
+                  </span>
+                  <span className="text-sm font-semibold">
+                    {stat.base_stat}
+                  </span>
+                </div>
+                <div className="mt-1 h-2 w-full rounded-full bg-gray-200 dark:bg-gray-600">
+                  <div
+                    className="h-2 rounded-full bg-blue-600"
+                    style={{
+                      width: `${Math.min(100, (stat.base_stat / 255) * 100)}%`,
+                    }}
+                  ></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <h3 className="mb-2 text-lg font-semibold">Abilities</h3>
+          <ul className="list-inside list-disc">
+            {pokemon.abilities.map((ability: { ability: { name: string }, is_hidden?: boolean }) => (
+              <li key={ability.ability.name} className="capitalize">
+                {ability.ability.name.replace('-', ' ')}
+                {ability.is_hidden && (
+                  <span className="ml-2 text-sm text-gray-500">(Hidden)</span>
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
+
+      {/* Add extra padding at bottom for mobile to ensure content isn't cut off */}
+      <div className="h-16 md:h-0"></div>
     </div>
   );
 };
 
-// Color mapping for Pokemon types
+const formatStatName = (name: string) => {
+  switch (name) {
+    case 'hp':
+      return 'HP';
+    case 'attack':
+      return 'Attack';
+    case 'defense':
+      return 'Defense';
+    case 'special-attack':
+      return 'Sp. Atk';
+    case 'special-defense':
+      return 'Sp. Def';
+    case 'speed':
+      return 'Speed';
+    default:
+      return name;
+  }
+};
+
 const typeColors: { [key: string]: string } = {
   normal: '#A8A77A',
   fire: '#EE8130',

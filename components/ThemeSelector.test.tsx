@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import ThemeSelector from './ThemeSelector';
 import { useTheme } from '../context/ThemeContext';
 vi.mock('../context/ThemeContext', () => ({
-  useTheme: vi.fn()
+  useTheme: vi.fn(),
 }));
 describe('ThemeSelector', () => {
   it('renders light and dark mode options', () => {
@@ -70,7 +70,7 @@ describe('ThemeSelector', () => {
       setTheme: mockSetTheme,
     });
     render(<ThemeSelector />);
-    const toggleButton = screen.getAllByRole('button')[2]; 
+    const toggleButton = screen.getAllByRole('button')[2];
     fireEvent.click(toggleButton);
     expect(mockSetTheme).toHaveBeenCalledWith('dark');
   });
