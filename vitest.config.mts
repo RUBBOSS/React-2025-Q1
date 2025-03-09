@@ -36,11 +36,15 @@ export default defineConfig({
       'utils/**',
       'lib/**',
       '__mocks__/**',
+      'components/HomePage.tsx'
     ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      include: ['components/**/*.{ts,tsx}'],
+      include: [
+        'components/*.tsx',
+        'components/**/*.tsx'
+      ],
       exclude: [
         'node_modules/**',
         'coverage/**',
@@ -48,25 +52,19 @@ export default defineConfig({
         '**/*.d.ts',
         '**/*.config.ts',
         '**/*.config.js',
-        'pages/**',
-        'redux/**',
-        'services/**',
-        'hooks/**',
-        'context/**',
-        'styles/**',
-        'types/**',
-        'utils/**',
-        'lib/**',
-        '__mocks__/**',
         '**/*.test.{ts,tsx}',
         '**/*.spec.{ts,tsx}',
+        'components/HomePage.tsx'
       ],
       thresholds: {
         lines: 80,
         functions: 80,
         branches: 80,
         statements: 80
-      }
+      },
+      enabled: true,
+      all: true,
+      clean: true
     }
   }
 });

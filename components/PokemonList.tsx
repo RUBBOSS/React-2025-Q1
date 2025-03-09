@@ -9,6 +9,8 @@ interface PokemonListProps {
   onSelectPokemon: (id: number) => void;
   selectedId?: number | null;
   compact?: boolean;
+  selectedIds?: number[];
+  onCheckboxChange?: (id: number, checked: boolean) => void;
 }
 
 const PokemonList = ({
@@ -16,25 +18,42 @@ const PokemonList = ({
   onSelectPokemon,
   selectedId = null,
   compact = false,
+  selectedIds,
+  onCheckboxChange,
 }: PokemonListProps) => {
   const [selectedPokemon, setSelectedPokemon] = useState<number[]>([]);
+  
+  // Use the provided selectedIds if available, otherwise use the internal state
+  const effectiveSelectedIds = selectedIds !== undefined ? selectedIds : selectedPokemon;
 
   const handleCheckboxChange = (id: number, isChecked: boolean) => {
-    setSelectedPokemon(prev => {
-      if (isChecked) {
-        return [...prev, id];
-      } else {
-        return prev.filter(pokemonId => pokemonId !== id);
-      }
-    });
+    if (onCheckboxChange) {
+      // If external handler is provided, use it
+      onCheckboxChange(id, isChecked);
+    } else {
+      // Otherwise, maintain internal state
+      setSelectedPokemon(prev => {
+        if (isChecked) {
+          return [...prev, id];
+        } else {
+          return prev.filter(pokemonId => pokemonId !== id);
+        }
+      });
+    }
   };
 
   const handleCompare = () => {
-    console.log('Selected for comparison:', selectedPokemon);
+    console.log('Selected for comparison:', effectiveSelectedIds);
   };
 
   const handleClearSelection = () => {
-    setSelectedPokemon([]);
+    if (onCheckboxChange) {
+      // If using external state management, clear all checkboxes
+      effectiveSelectedIds.forEach(id => onCheckboxChange(id, false));
+    } else {
+      // Otherwise clear internal state
+      setSelectedPokemon([]);
+    }
   };
 
   if (!pokemonData || pokemonData.length === 0) {
@@ -47,10 +66,10 @@ const PokemonList = ({
 
   return (
     <div>
-      {selectedPokemon.length > 0 && (
+      {effectiveSelectedIds.length > 0 && (
         <div className="mb-4 flex items-center justify-between rounded-lg bg-blue-50 p-4 shadow dark:bg-blue-900/30">
           <span className="text-sm font-medium">
-            {selectedPokemon.length} Pokemon selected
+            {effectiveSelectedIds.length} Pokemon selected
           </span>
           <div className="space-x-2">
             <button
@@ -84,7 +103,7 @@ const PokemonList = ({
             isSelected={selectedId === poke.id}
             isCompact={compact}
             onCheckboxChange={handleCheckboxChange}
-            isChecked={selectedPokemon.includes(poke.id)}
+            isChecked={effectiveSelectedIds.includes(poke.id)}
           />
         ))}
       </div>

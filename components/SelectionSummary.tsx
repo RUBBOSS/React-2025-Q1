@@ -3,23 +3,31 @@ import {
   selectSelectedPokemonIds,
   clearSelection,
 } from '../redux/slices/selectedPokemonSlice';
+
 const SelectionSummary: React.FC = () => {
   const selectedIds = useAppSelector(selectSelectedPokemonIds);
   const dispatch = useAppDispatch();
-  if (selectedIds.length === 0) return null;
+  const count = selectedIds.length;
+
+  const handleClearSelection = () => {
+    dispatch(clearSelection());
+  };
+
   return (
-    <div className="mb-4 flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 p-3">
+    <div className="bg-blue-50 p-3 rounded-lg flex justify-between items-center">
       <div>
-        <span className="font-medium text-blue-800">{selectedIds.length}</span>
-        <span className="text-blue-700"> Pokemon selected</span>
+        <span className="font-medium text-blue-800">{count}</span>
+        {' Pokemon selected'}
       </div>
       <button
-        onClick={() => dispatch(clearSelection())}
-        className="rounded-md bg-blue-600 px-3 py-1 text-sm text-white transition-colors hover:bg-blue-700"
+        onClick={handleClearSelection}
+        disabled={count === 0}
+        className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Clear Selection
       </button>
     </div>
   );
 };
+
 export default SelectionSummary;

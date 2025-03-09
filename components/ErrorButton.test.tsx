@@ -1,38 +1,63 @@
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import ErrorButton from './ErrorButton';
+
+// Store original console.error
+const originalConsoleError = console.error;
+
+// Create a spy on Error constructor
+const errorSpy = vi.spyOn(global, 'Error');
+
 describe('ErrorButton', () => {
-  it('renders correctly', () => {
-    render(<ErrorButton />);
-    expect(screen.getByText('Throw Test Error')).toBeInTheDocument();
+  beforeEach(() => {
+    // Silence console errors for cleaner test output
+    console.error = vi.fn();
+    // Clear previous calls to Error constructor
+    errorSpy.mockClear();
   });
-  it('throws an error when clicked', () => {
-    const handleClick = vi.fn().mockImplementation(() => {
-      throw new Error('This is a test error from the Error Button');
-    });
-    vi.spyOn(React, 'createElement').mockImplementationOnce(
-      (type, props, ...children) => {
-        if (type === 'button') {
-          return {
-            type,
-            props: {
-              ...props,
-              onClick: handleClick,
-            },
-            key: null,
-            ref: null,
-            $$typeof: Symbol.for('react.element'),
-            _owner: null,
-          };
-        }
-        return React.createElement(type, props, ...children);
-      }
-    );
+
+  afterEach(() => {
+    // Restore console.error after tests
+    console.error = originalConsoleError;
+  });
+
+  it('renders a button with correct text', () => {
     render(<ErrorButton />);
-    expect(handleClick).not.toHaveBeenCalled();
-    expect(() => handleClick()).toThrow(
-      'This is a test error from the Error Button'
-    );
+    expect(screen.getByRole('button')).toHaveTextContent(/throw test error/i);
+  });
+
+  it('has the expected styling', () => {
+    render(<ErrorButton />);
+    const button = screen.getByRole('button');
+    
+    // Check for text-white class which is in the actual component
+    expect(button).toHaveClass('text-white');
+    expect(button).toHaveClass('bg-yellow-500');
+  });
+
+  it('renders without crashing and has expected attributes', () => {
+    render(<ErrorButton />);
+    const button = screen.getByRole('button');
+    
+    expect(button).toBeInTheDocument();
+  });
+  
+  // Test the click handler function execution
+  it('executes the error-throwing function when clicked', () => {
+    const errorHandler = vi.fn();
+    window.addEventListener('error', errorHandler);
+    
+    render(<ErrorButton />);
+    const button = screen.getByRole('button');
+    
+    try {
+      fireEvent.click(button);
+    } catch (_) {
+    }
+    
+    expect(errorSpy).toHaveBeenCalled();
+    
+    window.removeEventListener('error', errorHandler);
   });
 });

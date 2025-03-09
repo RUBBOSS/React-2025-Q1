@@ -1,0 +1,11 @@
+{
+  "extends": "@istanbuljs/nyc-config-typescript",
+  "all": true,
+  "clean": true,
+  "skipEmpty": true,
+  "skipFull": true,
+  "excludeAfterRemap": true,
+  "reporter": ["html", "text", "text-summary"],
+  "report-dir": "./coverage",
+  "preserve-comments": true
+}
