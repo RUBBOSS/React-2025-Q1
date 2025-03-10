@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams as useNextSearchParams, useRouter as useNextRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import SearchBar from './SearchBar';
 import PokemonCard from './PokemonCard';
@@ -26,41 +26,83 @@ import {
 } from '../redux/slices/selectedPokemonSlice';
 
 const HomePage = () => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const nextRouter = useNextRouter();
   const dispatch = useAppDispatch();
   const detailsRef = useRef<HTMLDivElement>(null);
+  
+  // Only try to access React Router hooks when the component is mounted
+  // and we're in a browser context
+  const [routerHooks, setRouterHooks] = useState({
+    isUsingReactRouter: false,
+    initialData: [] as Pokemon[],
+    initialCount: 0,
+    routerLoading: false,
+  });
+  
+  useEffect(() => {
+    const detectReactRouter = async () => {
+      // Safe to check for React Router after mount
+      try {
+        if (typeof window !== 'undefined') {
+          const ReactRouter = await import('react-router-dom');
+          let isUsingReactRouter = false;
+          let data, count = 0, loading = false;
+        
+          try {
+            // Try to use React Router hooks
+            ReactRouter.useLocation();
+            isUsingReactRouter = true;
+          } catch {
+            isUsingReactRouter = false;
+          }
+          
+          setRouterHooks({
+            isUsingReactRouter,
+            initialData: data || [],
+            initialCount: count || 0,
+            routerLoading: loading,
+          });
+        }
+      } catch (e) {
+        console.error("Failed to detect React Router:", e);
+      }
+    };
+    detectReactRouter();
+  }, []);
 
+  // Use Next.js hooks/context which are always available
+  const nextSearchParams = useNextSearchParams();
   const currentPage = useAppSelector(selectCurrentPage);
   const searchTerm = useAppSelector(selectSearchTerm);
   const selectedIds = useAppSelector(selectSelectedPokemonIds);
 
   const [selectedPokemon, setSelectedPokemon] = useState<number | null>(null);
-  const [pokemonData, setPokemonData] = useState<Pokemon[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [pokemonData, setPokemonData] = useState<Pokemon[]>(routerHooks.initialData);
+  const [isLoading, setIsLoading] = useState(routerHooks.initialData.length === 0);
   const [error, setError] = useState<string | null>(null);
-  const [totalCount, setTotalCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(routerHooks.initialCount);
   const [detailsVisible, setDetailsVisible] = useState(false);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false); // Add this new state
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const itemsPerPage = 9;
 
+  // Fetch data on initial load if using Next.js
   useEffect(() => {
-    if (!searchTerm) {
+    if (!routerHooks.isUsingReactRouter && !searchTerm && pokemonData.length === 0) {
       fetchPokemonData(currentPage);
     }
-  }, []);
+  }, [routerHooks.isUsingReactRouter]);
 
   useEffect(() => {
-    if (!searchParams) return;
+    if (!nextSearchParams) return;
 
-    const pageFromUrl = searchParams.get('page')
-      ? Number(searchParams.get('page'))
+    const pageFromUrl = nextSearchParams.get('page')
+      ? Number(nextSearchParams.get('page'))
       : 1;
-    const detailsFromUrl = searchParams.get('details')
-      ? Number(searchParams.get('details'))
+    const detailsFromUrl = nextSearchParams.get('details')
+      ? Number(nextSearchParams.get('details'))
       : null;
-    const searchFromUrl = searchParams.get('search') || '';
+    const searchFromUrl = nextSearchParams.get('search') || '';
 
     if (pageFromUrl !== currentPage) {
       dispatch(setCurrentPage(pageFromUrl));
@@ -76,10 +118,11 @@ const HomePage = () => {
       if (searchFromUrl) {
         fetchSearchResults(searchFromUrl);
       } else if (pageFromUrl !== currentPage) {
-        fetchPokemonData(pageFromUrl);
+        setPokemonData(routerHooks.initialData);
+        setTotalCount(routerHooks.initialCount);
       }
     }
-  }, [searchParams]);
+  }, [nextSearchParams]);
 
   useEffect(() => {
     if (detailsRef.current) {
@@ -105,10 +148,115 @@ const HomePage = () => {
   useEffect(() => {
     if (searchTerm) {
       fetchSearchResults(searchTerm);
-    } else {
-      fetchPokemonData(currentPage);
     }
   }, [searchTerm, currentPage]);
+
+  useEffect(() => {
+    if (!searchTerm) {
+      fetchPokemonData(currentPage);
+    }
+  }, [currentPage]);
+
+  const handleSelectPokemon = (id: number) => {
+    setSelectedPokemon(id);
+    setDetailsVisible(true);
+    const params = new URLSearchParams(nextSearchParams?.toString() ?? '');
+    params.set('details', id.toString());
+    nextRouter.push(`/?${params.toString()}`);
+  };
+
+  const handleCloseDetails = () => {
+    if (detailsRef.current) {
+      detailsRef.current.style.transform = 'translateX(100%)';
+    }
+
+    setTimeout(() => {
+      setSelectedPokemon(null);
+      setDetailsVisible(false);
+      const params = new URLSearchParams(nextSearchParams?.toString() ?? '');
+      params.delete('details');
+      nextRouter.push(`/?${params.toString()}`);
+    }, 300);
+  };
+
+  const handlePageChange = (page: number) => {
+    dispatch(setCurrentPage(page));
+    const params = new URLSearchParams(nextSearchParams?.toString() ?? '');
+    params.set('page', page.toString());
+    nextRouter.push(`/?${params.toString()}`);
+  };
+
+  const handleSearch = (term: string) => {
+    dispatch(setSearchTerm(term));
+    dispatch(setCurrentPage(1));
+    
+    const params = new URLSearchParams(nextSearchParams?.toString() ?? '');
+    if (term) {
+      params.set('search', term);
+    } else {
+      params.delete('search');
+    }
+    params.set('page', '1');
+    nextRouter.push(`/?${params.toString()}`);
+  };
+
+  const fetchSearchResults = async (term: string) => {
+    if (!term) {
+      setPokemonData(routerHooks.initialData);
+      setTotalCount(routerHooks.initialCount);
+      return;
+    }
+
+    setError(null);
+
+    try {
+      const response = await fetch('/api/pokemon?limit=1000');
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch search data');
+      }
+
+      const data = await response.json();
+
+      const filteredResults = data.results.filter((pokemon: { name: string }) =>
+        pokemon.name.toLowerCase().includes(term.toLowerCase())
+      );
+
+      setTotalCount(filteredResults.length);
+
+      const page = Number(nextSearchParams?.get('page') || 1);
+      const startIndex = (page - 1) * itemsPerPage;
+      const paginatedResults = filteredResults.slice(
+        startIndex,
+        startIndex + itemsPerPage
+      );
+
+      if (paginatedResults.length === 0) {
+        setPokemonData([]);
+        return;
+      }
+
+      const detailedData = await Promise.all(
+        paginatedResults.map(async (pokemon: { name: string; url: string }) => {
+          const pokemonId = pokemon.url.split('/').filter(Boolean).pop();
+          const detailResponse = await fetch(`/api/pokemon/${pokemonId}`);
+
+          if (!detailResponse.ok) {
+            throw new Error(`Failed to fetch details for ${pokemon.name}`);
+          }
+
+          return await detailResponse.json();
+        })
+      );
+
+      setPokemonData(detailedData);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'An unknown error occurred'
+      );
+      setPokemonData([]);
+    }
+  };
 
   const fetchPokemonData = async (page: number) => {
     setIsLoading(true);
@@ -151,110 +299,6 @@ const HomePage = () => {
     }
   };
 
-  const handleSelectPokemon = (id: number) => {
-    setSelectedPokemon(id);
-    setDetailsVisible(true);
-    const params = new URLSearchParams(searchParams?.toString() ?? '');
-    params.set('details', id.toString());
-    router.push(`/?${params.toString()}`);
-  };
-
-  const handleCloseDetails = () => {
-    if (detailsRef.current) {
-      detailsRef.current.style.transform = 'translateX(100%)';
-    }
-
-    setTimeout(() => {
-      setSelectedPokemon(null);
-      setDetailsVisible(false);
-      const params = new URLSearchParams(searchParams?.toString() ?? '');
-      params.delete('details');
-      router.push(`/?${params.toString()}`);
-    }, 300);
-  };
-
-  const handlePageChange = (page: number) => {
-    dispatch(setCurrentPage(page));
-    const params = new URLSearchParams(searchParams?.toString() ?? '');
-    params.set('page', page.toString());
-    router.push(`/?${params.toString()}`);
-  };
-
-  const handleSearch = (term: string) => {
-    dispatch(setSearchTerm(term));
-    dispatch(setCurrentPage(1));
-
-    const params = new URLSearchParams(searchParams?.toString() ?? '');
-    if (term) {
-      params.set('search', term);
-    } else {
-      params.delete('search');
-    }
-    params.set('page', '1');
-    router.push(`/?${params.toString()}`);
-  };
-
-  const fetchSearchResults = async (term: string) => {
-    if (!term) {
-      fetchPokemonData(1);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch('/api/pokemon?limit=1000');
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch search data');
-      }
-
-      const data = await response.json();
-
-      const filteredResults = data.results.filter((pokemon: { name: string }) =>
-        pokemon.name.toLowerCase().includes(term.toLowerCase())
-      );
-
-      setTotalCount(filteredResults.length);
-
-      const page = Number(searchParams?.get('page') || 1);
-      const startIndex = (page - 1) * itemsPerPage;
-      const paginatedResults = filteredResults.slice(
-        startIndex,
-        startIndex + itemsPerPage
-      );
-
-      if (paginatedResults.length === 0) {
-        setPokemonData([]);
-        setIsLoading(false);
-        return;
-      }
-
-      const detailedData = await Promise.all(
-        paginatedResults.map(async (pokemon: { name: string; url: string }) => {
-          const pokemonId = pokemon.url.split('/').filter(Boolean).pop();
-          const detailResponse = await fetch(`/api/pokemon/${pokemonId}`);
-
-          if (!detailResponse.ok) {
-            throw new Error(`Failed to fetch details for ${pokemon.name}`);
-          }
-
-          return await detailResponse.json();
-        })
-      );
-
-      setPokemonData(detailedData);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'An unknown error occurred'
-      );
-      setPokemonData([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleCheckboxChange = (id: number, isChecked: boolean) => {
     const pokemon = pokemonData.find(p => p.id === id);
     if (pokemon && isChecked !== selectedIds.includes(id)) {
@@ -273,6 +317,9 @@ const HomePage = () => {
       isChecked={selectedIds.includes(pokemon.id)}
     />
   );
+
+  // Use the loader state if available, otherwise use local state
+  const actualIsLoading = routerHooks.routerLoading || isLoading;
 
   return (
     <div
@@ -295,7 +342,7 @@ const HomePage = () => {
           <div className="my-4 text-center text-red-500">Error: {error}</div>
         )}
 
-        {isLoading ? (
+        {actualIsLoading ? (
           <LoadingSpinner />
         ) : (
           <div className="flex flex-col md:flex-row md:items-start">
@@ -370,7 +417,7 @@ const HomePage = () => {
           </div>
         )}
 
-        {!isLoading && (
+        {!actualIsLoading && (
           <div className="flex w-full justify-center">
             <ErrorButton />
           </div>
